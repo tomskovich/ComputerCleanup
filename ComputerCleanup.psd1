@@ -33,7 +33,7 @@ Copyright = '(c) Tom de Leeuw. All rights reserved.'
 Description = 'Module for freeing up disk space / removing temp files etc.'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '5'
+PowerShellVersion = 5.1
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''

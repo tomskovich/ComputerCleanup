@@ -6,7 +6,7 @@ function Optimize-SystemFolders {
     )
 
     process {
-        Write-Output "Deleting SYSTEM folders/files older than $Days days old."
+        Write-Output "Deleting SYSTEM folders/files older than $Days days old..."
 
         # Folders to clean up
         $Folders = @(

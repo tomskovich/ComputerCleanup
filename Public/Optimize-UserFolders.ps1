@@ -52,7 +52,7 @@ function Optimize-UserFolders {
     } # end Begin
     
     process {
-        Write-Output "Deleting USER temp folders/files older than $Days days old."
+        Write-Output "Deleting USER temp folders/files older than $Days days old..."
         ForEach ($Username In $Users) {
             # Folders with temp files
             ForEach ($Folder In $TempFolders) {

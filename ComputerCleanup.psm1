@@ -1,5 +1,5 @@
 #Get public and private function definition files.
-$Private = (Get-ChildItem -Path (Join-Path $PSScriptRoot 'Private') -Filter *.ps1)
+$Private = (Get-ChildItem -Path (Join-Path $PSScriptRoot 'Private') -Filter *.ps1 -Recurse -ErrorAction SilentlyContinue) 
 $Public = (Get-ChildItem -Path (Join-Path $PSScriptRoot 'Public') -Filter *.ps1 -Recurse)
 
 #Dot source the files
@@ -11,5 +11,5 @@ Foreach ($import in @($Public + $Private)) {
         Write-Error -Message "Failed to import function $($import.fullname): $_"
     }
 }
-
+Export-ModuleMember -Function $Private.Basename -ErrorAction SilentlyContinue
 Export-ModuleMember -Function $Public.Basename

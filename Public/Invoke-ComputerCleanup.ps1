@@ -6,13 +6,17 @@ function Invoke-ComputerCleanup {
 
         [switch] $UserFolders,
 
+        [switch] $UserDownloads,
+
         [switch] $SystemFolders,
 
         [switch] $CleanManager,
 
         [switch] $BrowserCache,
 
-        [switch] $Teams
+        [switch] $Teams,
+
+        [switch] $Force
     )
 
     begin {
@@ -30,7 +34,12 @@ function Invoke-ComputerCleanup {
         if ($UserFolders -eq $true) {
             try {
                 Write-Host '[STARTED: Cleaning User folders]' -ForegroundColor Yellow
-                Optimize-UserFolders -Days $Days -Downloads -GenericFiles -ArchiveFiles
+                if ($UserDownloads -eq $true) {
+                    Optimize-UserFolders -Days $Days -Downloads -ArchiveFiles
+                }
+                else {
+                    Optimize-UserFolders -Days $Days
+                }
                 Write-Host '[FINISHED: Cleaning User Folders]' -ForegroundColor Green
             }
             catch {
@@ -62,9 +71,14 @@ function Invoke-ComputerCleanup {
 
         if ($Teams -eq $true) {
             try {
-                Write-Host '[STARTED: Cleaning System folders]' -ForegroundColor Yellow
-                Remove-TeamsCache
-                Write-Host '[FINISHED: Cleaning System Folders]' -ForegroundColor Green
+                Write-Host '[STARTED: Cleaning Teams cache]' -ForegroundColor Yellow
+                if ($Force -eq $true) {
+                    Optimize-TeamsCache -Force
+                }
+                else {
+                    Optimize-TeamsCache
+                }
+                Write-Host '[FINISHED: Cleaning Teams cache]' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -83,7 +97,7 @@ function Invoke-ComputerCleanup {
         $TotalMinutes = [int]$(($EndTime - $StartTime).TotalMinutes)
     
         # Report
-        Write-Host '############################## REPORT SECTION ##############################' -ForegroundColor Yellow -BackgroundColor Black
+        Write-Host '############################## REPORT SECTION ##############################' -ForegroundColor GREEN -BackgroundColor Black
         Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
         Write-Host "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)" -ForegroundColor Green -BackgroundColor Black
         Write-Host "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes" -ForegroundColor Green -BackgroundColor Black
