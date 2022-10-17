@@ -4,6 +4,10 @@ function Optimize-UserFolders {
         [Parameter(Mandatory = $true)]
         [int] $Days,
 
+        [switch] $TempFiles,
+
+        [switch] $BrowserCache,
+
         [Parameter(Mandatory = $false, ParameterSetName = 'Downloads')]
         [switch] $Downloads,
 
@@ -14,13 +18,13 @@ function Optimize-UserFolders {
         [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Downloads')]
-        [string] $ArchiveSize = '500MB',
+        [string] $ArchiveSize = '200MB',
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Downloads')]
         [switch] $GenericFiles,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Downloads')]
-        [array] $GenericTypes = @('msi', 'exe', 'mkv'),
+        [array] $GenericTypes = @('msi', 'exe'),
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Downloads')]
         [string] $GenericSize = '5MB'
@@ -29,18 +33,7 @@ function Optimize-UserFolders {
     begin {
         # Get all user folders, exclude administrators and default users
         $Users = Get-UserFolders
-
-        # Folders to clean up
-        $TempFolders = @(
-            '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
-            '\AppData\Local\Microsoft\Windows\WebCache',
-            '\AppData\Local\Microsoft\Windows\WER',
-            '\AppData\Local\Microsoft\Internet Explorer\Recovery',
-            '\AppData\Local\Microsoft\Terminal Server Client\Cache',
-            '\AppData\Local\CrashDumps',
-            '\AppData\Local\Temp'
-        )
-
+    
         # Parameters for Get-ChildItem and Remove-Item
         $CommonParams = @{
             Recurse       = $true
@@ -52,18 +45,29 @@ function Optimize-UserFolders {
     } # end Begin
     
     process {
-        Write-Output "Deleting USER temp folders/files older than $Days days old..."
         ForEach ($Username In $Users) {
-            # Folders with temp files
-            ForEach ($Folder In $TempFolders) {
-                If (Test-Path -Path "C:\Users\$Username\$Folder") {
-                    try {
-                        Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams |
-                            Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
-                                Remove-Item @CommonParams
-                    }
-                    catch {
-                        Write-Error $_
+            # General temp files/folders
+            if ($TempFiles -eq $true) {
+                # Folders to clean up
+                $TempFolders = @(
+                    '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
+                    '\AppData\Local\Microsoft\Windows\WebCache',
+                    '\AppData\Local\Microsoft\Windows\WER',
+                    '\AppData\Local\Microsoft\Internet Explorer\Recovery',
+                    '\AppData\Local\Microsoft\Terminal Server Client\Cache',
+                    '\AppData\Local\CrashDumps',
+                    '\AppData\Local\Temp'
+                )
+                ForEach ($Folder In $TempFolders) {
+                    If (Test-Path -Path "C:\Users\$Username\$Folder") {
+                        try {
+                            Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams |
+                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
+                                    Remove-Item @CommonParams
+                        }
+                        catch {
+                            Write-Error $_
+                        }
                     }
                 }
             }
@@ -94,6 +98,36 @@ function Optimize-UserFolders {
                             catch {
                                 Write-Error $_
                             }
+                        }
+                    }
+                }
+            }
+            if ($BrowserCache -eq $true) {
+                # Folders to clean up
+                $CacheFolders = @(
+                    # Google Chrome
+                    '\AppData\Local\Google\Chrome\User Data\Default\Cache',
+                    '\AppData\Local\Google\Chrome\User Data\Default\Cache2\entries',
+                    '\AppData\Local\Google\Chrome\User Data\Default\Cookies',
+                    '\AppData\Local\Google\Chrome\User Data\Default\Media Cache',
+                    '\AppData\Local\Google\Chrome\User Data\Default\Cookies-Journal'
+                    # Firefox
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache',
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache2\entries',
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\thumbnails',
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cookies.sqlite',
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\webappsstore.sqlite',
+                    '\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
+                )
+                ForEach ($Folder In $CacheFolders) {
+                    If (Test-Path -Path "C:\Users\$Username\$Folder") {
+                        try {
+                            Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams |
+                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
+                                    Remove-Item @CommonParams
+                        }
+                        catch {
+                            Write-Error $_
                         }
                     }
                 }

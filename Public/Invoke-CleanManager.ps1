@@ -33,7 +33,7 @@ function Invoke-CleanManager {
         'Offline Pages Files',
         'Old ChkDsk Files',
         'Previous Installations',
-        'Recycle Bin',
+        #'Recycle Bin',
         'Service Pack Cleanup',
         'Setup Log Files',
         'System error memory dump files',

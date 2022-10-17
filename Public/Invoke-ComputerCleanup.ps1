@@ -4,11 +4,11 @@ function Invoke-ComputerCleanup {
         [Parameter(Mandatory = $true)]
         [int] $Days,
 
-        [switch] $UserFolders,
+        [switch] $UserTemp,
 
         [switch] $UserDownloads,
 
-        [switch] $SystemFolders,
+        [switch] $SystemTemp,
 
         [switch] $CleanManager,
 
@@ -31,38 +31,33 @@ function Invoke-ComputerCleanup {
     } # end Begin
     
     process {
-        if ($UserFolders -eq $true) {
+        if ($UserTemp -eq $true) {
+            $UserParams = @{
+                Days      = $Days
+                TempFiles = $true
+            }
+            if ($UserDownloads -eq $true) {
+                $UserParams.Downloads = $true
+                $UserParams.ArchiveFiles  = $true
+            }
+            if ($BrowserCache -eq $true) {
+                $UserParams.BrowserCache = $true
+            }
             try {
-                Write-Host '[STARTED: Cleaning User folders]' -ForegroundColor Yellow
-                if ($UserDownloads -eq $true) {
-                    Optimize-UserFolders -Days $Days -Downloads -ArchiveFiles
-                }
-                else {
-                    Optimize-UserFolders -Days $Days
-                }
-                Write-Host '[FINISHED: Cleaning User Folders]' -ForegroundColor Green
+                Write-Host '===STARTED : Cleaning User Profiles' -ForegroundColor Yellow
+                Optimize-UserFolders @UserParams
+                Write-Host '===FINISHED: Cleaning User Profiles' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
             }
         }
 
-        if ($CleanManager -eq $true) {
+        if ($SystemTemp -eq $true) {
             try {
-                Write-Host '[STARTED: CleanMgr]' -ForegroundColor Yellow
-                Invoke-CleanManager
-                Write-Host '[FINISHED: CleanMgr]' -ForegroundColor Green
-            }
-            catch {
-                Write-Error $_
-            }
-        }
-
-        if ($SystemFolders -eq $true) {
-            try {
-                Write-Host '[STARTED: Cleaning System folders]' -ForegroundColor Yellow
+                Write-Host '===STARTED : Cleaning System files' -ForegroundColor Yellow
                 Optimize-SystemFolders -Days $Days
-                Write-Host '[FINISHED: Cleaning System Folders]' -ForegroundColor Green
+                Write-Host '===FINISHED: Cleaning System files' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -71,14 +66,25 @@ function Invoke-ComputerCleanup {
 
         if ($Teams -eq $true) {
             try {
-                Write-Host '[STARTED: Cleaning Teams cache]' -ForegroundColor Yellow
+                Write-Host '===STARTED : Cleaning Teams cache' -ForegroundColor Yellow
                 if ($Force -eq $true) {
                     Optimize-TeamsCache -Force
                 }
                 else {
                     Optimize-TeamsCache
                 }
-                Write-Host '[FINISHED: Cleaning Teams cache]' -ForegroundColor Green
+                Write-Host '===FINISHED: Cleaning Teams cache' -ForegroundColor Green
+            }
+            catch {
+                Write-Error $_
+            }
+        }
+
+        if ($CleanManager -eq $true) {
+            try {
+                Write-Host '===STARTED : CleanMgr' -ForegroundColor Yellow
+                Invoke-CleanManager
+                Write-Host '===FINISHED: CleanMgr' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -97,7 +103,7 @@ function Invoke-ComputerCleanup {
         $TotalMinutes = [int]$(($EndTime - $StartTime).TotalMinutes)
     
         # Report
-        Write-Host '############################## REPORT SECTION ##############################' -ForegroundColor GREEN -BackgroundColor Black
+        Write-Host '=== SCRIPT FINISHED' -ForegroundColor GREEN -BackgroundColor Black
         Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
         Write-Host "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)" -ForegroundColor Green -BackgroundColor Black
         Write-Host "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes" -ForegroundColor Green -BackgroundColor Black
