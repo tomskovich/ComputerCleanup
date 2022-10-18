@@ -1,8 +1,9 @@
 function Invoke-ComputerCleanup {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [int] $Days,
+        [Parameter(Position = 0)]
+        [ValidateNotNullOrempty()]
+        [int] $Days = 15,
 
         [switch] $UserTemp,
 
@@ -31,6 +32,55 @@ function Invoke-ComputerCleanup {
     } # end Begin
     
     process {
+        # Write all enabled script options to console
+        Write-Host "=== SCRIPT OPTIONS SUMMARY:" -ForegroundColor Cyan
+        switch ($PSBoundParameters.Keys) {
+            'SystemTemp' {
+                Write-Host "-Days"
+                Write-Host "=== Files older than $Days old will be removed. (Default: 15) This DOES NOT apply to options 'Teams'!" -ForegroundColor 'Yellow'
+            }
+            'SystemTemp' {
+                Write-Host "-SystemTemp"
+                Write-Host "=== This will remove general system-wide temporary files and folders." -ForegroundColor 'Yellow'
+            }
+            'UserTemp' {
+                Write-Host "-UserTemp"
+                Write-Host "=== This will remove temporary files and folders from user profiles." -ForegroundColor 'Yellow'
+            }
+            'UserDownloads' {
+                Write-Host "-UserDownloads"
+                Write-Host "=== This will remove .ZIP, .RAR and .7z files >200MB and >$Days old from users' downloads folder!" -ForegroundColor 'Yellow'
+            }
+            'BrowserCache' {
+                Write-Host "-BrowserCache"
+                Write-Host "=== This will remove cache files for all browsers." -ForegroundColor 'Yellow'
+            }
+            'CleanManager' {
+                Write-Host "-CleanManager"
+                Write-Host "=== This will run the Windows Disk Cleanup tool with predefined options." -ForegroundColor 'Yellow'
+            }
+            'Teams' {
+                Write-Host "-BrowserCache"
+                Write-Host "=== This will remove cache files for all browsers." -ForegroundColor 'Yellow'
+            }
+        }
+
+        # Prompt for user verification before continuing
+        $Confirmation = Read-Host -Prompt "Are you sure you want to run the cleanup with above settings? [Y/N]"
+        while (($Confirmation) -notmatch "[yY]") {
+            switch -regex ($Confirmation) {
+                "[yY]" {
+                    continue
+                }
+                "[nN]" {
+                    throw "Script aborted."
+                }
+                default {
+                    throw "Script aborted."
+                }
+            }
+        } 
+
         if ($UserTemp -eq $true) {
             $UserParams = @{
                 Days      = $Days

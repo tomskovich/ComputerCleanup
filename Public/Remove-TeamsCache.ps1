@@ -1,5 +1,6 @@
 function Remove-TeamsCache {
     param(
+        # Enabling this parameter will skip verification.
         [Switch] $Force
     )
     
@@ -56,9 +57,9 @@ function Remove-TeamsCache {
             # Start cleaning files
             ForEach ($Username In $Users) {
                 ForEach ($Folder In $Folders) {
-                    If (Test-Path -Path "C:\Users\$Username\$Folder") {
+                    If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                         try {
-                            Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams | Remove-Item @CommonParams
+                            Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams | Remove-Item @CommonParams
                             Write-Verbose "Removed Teams Cache files for $Username."
                         }
                         catch {

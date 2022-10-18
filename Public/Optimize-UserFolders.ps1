@@ -59,9 +59,9 @@ function Optimize-UserFolders {
                     '\AppData\Local\Temp'
                 )
                 ForEach ($Folder In $TempFolders) {
-                    If (Test-Path -Path "C:\Users\$Username\$Folder") {
+                    If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                         try {
-                            Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams |
+                            Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams |
                                 Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
                                     Remove-Item @CommonParams
                         }
@@ -73,12 +73,12 @@ function Optimize-UserFolders {
             }
             # Downloads folder
             if ($Downloads -eq $true) { 
-                If (Test-Path -Path "C:\Users\$Username\Downloads") {
+                If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads") {
                     # Compressed files larger than $ArchiveSize
                     if ($ArchiveFiles -eq $true) {
                         ForEach ($Ext In $ArchiveTypes) {
                             try {
-                                Get-ChildItem -Path "C:\Users\$Username\Downloads\*.$Ext" @CommonParams |
+                                Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads\*.$Ext" @CommonParams |
                                     Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $ArchiveSize) } | 
                                         Remove-Item @CommonParams
                             }
@@ -91,7 +91,7 @@ function Optimize-UserFolders {
                     if ($GenericFiles -eq $true) {
                         ForEach ($Ext In $GenericTypes) {
                             try {
-                                Get-ChildItem -Path "C:\Users\$Username\Downloads\*.$($Ext)" @CommonParams |
+                                Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads\*.$($Ext)" @CommonParams |
                                     Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $GenericSize) } | 
                                         Remove-Item @CommonParams
                             }
@@ -120,9 +120,9 @@ function Optimize-UserFolders {
                     '\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
                 )
                 ForEach ($Folder In $CacheFolders) {
-                    If (Test-Path -Path "C:\Users\$Username\$Folder") {
+                    If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                         try {
-                            Get-ChildItem -Path "C:\Users\$Username\$Folder" @CommonParams |
+                            Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams |
                                 Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
                                     Remove-Item @CommonParams
                         }
