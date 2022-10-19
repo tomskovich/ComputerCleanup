@@ -1,26 +1,36 @@
 function Invoke-ComputerCleanup {
     [CmdletBinding()]
     param (
+        # Only remove files and folders older than $Days old. 
         [Parameter(Mandatory = $true, Position = 0)]
         [int] $Days,
 
+        # Will clean temporary files and folders in all userprofiles.
+        [Parameter(ParameterSetName = 'User')]
         [switch] $UserTemp,
 
+        [Parameter(ParameterSetName = 'User')]
         [switch] $UserDownloads,
 
+        [Parameter(ParameterSetName = 'User')]
         [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
+
+        [Parameter(ParameterSetName = 'User')]
+        [switch] $BrowserCache,
+
+        [Parameter(ParameterSetName = 'User')]
+        [switch] $Teams,
+
+        [Parameter(ParameterSetName = 'User')]
+        [switch] $Force,
 
         [switch] $SystemTemp,
 
+        [switch] $SoftwareDistribution,
+
         [switch] $RecycleBin,
 
-        [switch] $CleanManager,
-
-        [switch] $BrowserCache,
-
-        [switch] $Teams,
-
-        [switch] $Force
+        [switch] $CleanManager
     )
 
     begin {
@@ -65,9 +75,14 @@ function Invoke-ComputerCleanup {
                 Write-Host "-CleanManager"
                 Write-Host -ForegroundColor 'Cyan' "=== This will run the Windows Disk Cleanup tool with predefined options."
             }
+            'SoftwareDistribution' {
+                Write-Host "-SoftwareDistribution"
+                Write-Host -ForegroundColor 'Cyan' "=== This will clean the 'C:\Windows\SoftwareDistribution\Download' folder."
+            }
             'Teams' {
-                Write-Host "-BrowserCache"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove cache files for all browsers."
+                Write-Host "-Teams"
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove Microsoft Teams cache files for all users."
+                Write-Host -ForegroundColor 'Yellow' "INFO: Use parameter "-Force" to skip confirmation."
             }
         }
 
@@ -124,6 +139,12 @@ function Invoke-ComputerCleanup {
             catch {
                 Write-Error $_
             }
+        }
+
+        if ($SoftwareDistribution -eq $true) {
+            Write-Host '=== STARTED : Cleaning SoftwareDistribution Download folder' -ForegroundColor Yellow
+            Clear-SoftwareDistribution
+            Write-Host '=== FINISHED: Cleaning SoftwareDistribution Download folder' -ForegroundColor Green
         }
 
         if ($Teams -eq $true) {

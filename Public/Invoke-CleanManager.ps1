@@ -1,13 +1,13 @@
 function Invoke-CleanManager {
     # Checks if Disk Cleanup is installed, if not; install it (For Server 2008 R2 without Cleanmgr preinstalled)
-    if ( ! (Test-Path "$env:windir\System32\cleanmgr.exe")) {
+    if ( ! (Test-Path "$env:SystemRoot\System32\cleanmgr.exe")) {
         Write-Warning 'Windows Cleanup NOT installed! Trying installation...'
         try {
-            if (Test-Path "$env:windir\Winsxs\amd64_microsoft-windows-cleanmgr_31bf3856ad364e35_6.1.7600.16385_none_c9392808773cd7da\cleanmgr.exe") {
-                Copy-Item "$env:windir\Winsxs\amd64_microsoft-windows-cleanmgr_31bf3856ad364e35_6.1.7600.16385_none_c9392808773cd7da\cleanmgr.exe" -Destination "$env:windir\System32"
+            if (Test-Path "$env:SystemRoot\Winsxs\amd64_microsoft-windows-cleanmgr_31bf3856ad364e35_6.1.7600.16385_none_c9392808773cd7da\cleanmgr.exe") {
+                Copy-Item "$env:SystemRoot\Winsxs\amd64_microsoft-windows-cleanmgr_31bf3856ad364e35_6.1.7600.16385_none_c9392808773cd7da\cleanmgr.exe" -Destination "$env:SystemRoot\System32"
             }
-            if (Test-Path "$env:windir\Winsxs\amd64_microsoft-windows-cleanmgr.resources_31bf3856ad364e35_6.1.7600.16385_en-us_b9cb6194b257cc63\cleanmgr.exe.mui") {
-                Copy-Item "$env:windir\Winsxs\amd64_microsoft-windows-cleanmgr.resources_31bf3856ad364e35_6.1.7600.16385_en-us_b9cb6194b257cc63\cleanmgr.exe.mui" -Destination "$env:windir\System32\en-US"
+            if (Test-Path "$env:SystemRoot\Winsxs\amd64_microsoft-windows-cleanmgr.resources_31bf3856ad364e35_6.1.7600.16385_en-us_b9cb6194b257cc63\cleanmgr.exe.mui") {
+                Copy-Item "$env:SystemRoot\Winsxs\amd64_microsoft-windows-cleanmgr.resources_31bf3856ad364e35_6.1.7600.16385_en-us_b9cb6194b257cc63\cleanmgr.exe.mui" -Destination "$env:SystemRoot\System32\en-US"
             }
             elseif ( ! (Get-WindowsFeature 'Desktop-Experience')) {
                 Write-Verbose 'Manual file copy failed. Installing Desktop Experience feature...'
@@ -17,6 +17,11 @@ function Invoke-CleanManager {
         catch {
             Write-Error $_
         }
+    }
+
+    # Check if Disk Cleanup is available again before continuing
+    if ( ! (Test-Path "$env:SystemRoot\System32\cleanmgr.exe")) {
+        throw "Windows Disk Cleanup tool not installed! Aborting..."
     }
 
     # Enabled sections to be used by Disk Cleanup
@@ -54,7 +59,7 @@ function Invoke-CleanManager {
         'Windows Upgrade Log Files'
     )
 
-    # Clears registry entries
+    # Clears current registry entries
     Write-Verbose 'Clearing current CleanMgr.exe automation settings...'
     $RegistryParams = @{
         Path        = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*'
