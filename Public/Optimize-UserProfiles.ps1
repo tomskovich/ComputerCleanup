@@ -1,7 +1,7 @@
-function Optimize-UserFolders {
+function Optimize-UserProfiles {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [int] $Days,
 
         [switch] $TempFiles,
@@ -33,7 +33,7 @@ function Optimize-UserFolders {
     begin {
         # Get all user folders, exclude administrators and default users
         $Users = Get-UserFolders
-    
+
         # Parameters for Get-ChildItem and Remove-Item
         $CommonParams = @{
             Recurse       = $true
@@ -43,7 +43,7 @@ function Optimize-UserFolders {
             WarningAction = 'SilentlyContinue'
         }
     } # end Begin
-    
+
     process {
         ForEach ($Username In $Users) {
             # General temp files/folders
@@ -62,7 +62,7 @@ function Optimize-UserFolders {
                     If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                         try {
                             Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams |
-                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
+                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } |
                                     Remove-Item @CommonParams
                         }
                         catch {
@@ -72,14 +72,14 @@ function Optimize-UserFolders {
                 }
             }
             # Downloads folder
-            if ($Downloads -eq $true) { 
+            if ($Downloads -eq $true) {
                 If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads") {
                     # Compressed files larger than $ArchiveSize
                     if ($ArchiveFiles -eq $true) {
                         ForEach ($Ext In $ArchiveTypes) {
                             try {
                                 Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads\*.$Ext" @CommonParams |
-                                    Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $ArchiveSize) } | 
+                                    Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $ArchiveSize) } |
                                         Remove-Item @CommonParams
                             }
                             catch {
@@ -92,7 +92,7 @@ function Optimize-UserFolders {
                         ForEach ($Ext In $GenericTypes) {
                             try {
                                 Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\Downloads\*.$($Ext)" @CommonParams |
-                                    Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $GenericSize) } | 
+                                    Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days) -and $_.Length -gt $GenericSize) } |
                                         Remove-Item @CommonParams
                             }
                             catch {
@@ -123,7 +123,7 @@ function Optimize-UserFolders {
                     If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                         try {
                             Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams |
-                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } | 
+                                Where-Object { ($_.CreationTime -and $_.LastAccessTime -lt $(Get-Date).AddDays(-$Days)) } |
                                     Remove-Item @CommonParams
                         }
                         catch {

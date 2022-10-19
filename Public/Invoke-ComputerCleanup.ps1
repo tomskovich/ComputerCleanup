@@ -1,13 +1,14 @@
 function Invoke-ComputerCleanup {
     [CmdletBinding()]
     param (
-        [Parameter(Position = 0)]
-        [ValidateNotNullOrempty()]
-        [int] $Days = 15,
+        [Parameter(Mandatory = $true, Position = 0)]
+        [int] $Days,
 
         [switch] $UserTemp,
 
         [switch] $UserDownloads,
+
+        [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
 
         [switch] $SystemTemp,
 
@@ -23,21 +24,24 @@ function Invoke-ComputerCleanup {
     begin {
         # Start logging
         Start-Logging -LogName 'ComputerCleanup'
+
         # Verify if running as Administrator
         Assert-RunAsAdministrator
+
         # Start timer
         $StartTime = (Get-Date)
+
         # Get disk space for comparison afterwards
         $Before = Get-DiskSpace
-    } # end Begin
-    
+    }
+
     process {
         # Write all enabled script options to console
         Write-Host "=== SCRIPT OPTIONS SUMMARY:" -ForegroundColor Cyan
         switch ($PSBoundParameters.Keys) {
-            'SystemTemp' {
+            'Days' {
                 Write-Host "-Days"
-                Write-Host "=== Files older than $Days old will be removed. (Default: 15) This DOES NOT apply to options 'Teams'!" -ForegroundColor 'Yellow'
+                Write-Host "=== Files older than $Days old will be removed. This DOES NOT apply to options 'Teams'!" -ForegroundColor 'Yellow'
             }
             'SystemTemp' {
                 Write-Host "-SystemTemp"
@@ -73,13 +77,13 @@ function Invoke-ComputerCleanup {
                     continue
                 }
                 "[nN]" {
-                    throw "Script aborted."
+                    throw "Script aborted by user input."
                 }
                 default {
                     throw "Script aborted."
                 }
             }
-        } 
+        }
 
         if ($UserTemp -eq $true) {
             $UserParams = @{
@@ -94,9 +98,9 @@ function Invoke-ComputerCleanup {
                 $UserParams.BrowserCache = $true
             }
             try {
-                Write-Host '===STARTED : Cleaning User Profiles' -ForegroundColor Yellow
-                Optimize-UserFolders @UserParams
-                Write-Host '===FINISHED: Cleaning User Profiles' -ForegroundColor Green
+                Write-Host '=== STARTED : Cleaning User Profiles' -ForegroundColor Yellow
+                Optimize-UserProfiles @UserParams
+                Write-Host '=== FINISHED: Cleaning User Profiles' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -105,9 +109,9 @@ function Invoke-ComputerCleanup {
 
         if ($SystemTemp -eq $true) {
             try {
-                Write-Host '===STARTED : Cleaning System files' -ForegroundColor Yellow
-                Optimize-SystemFolders -Days $Days
-                Write-Host '===FINISHED: Cleaning System files' -ForegroundColor Green
+                Write-Host '=== STARTED : Cleaning System files' -ForegroundColor Yellow
+                Optimize-SystemFiles -Days $Days
+                Write-Host '=== FINISHED: Cleaning System files' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -115,15 +119,14 @@ function Invoke-ComputerCleanup {
         }
 
         if ($Teams -eq $true) {
+            $TeamsParams = @{}
+            if ($Force -eq $true) {
+                $TeamsParams.Force = $true
+            }
             try {
-                Write-Host '===STARTED : Cleaning Teams cache' -ForegroundColor Yellow
-                if ($Force -eq $true) {
-                    Optimize-TeamsCache -Force
-                }
-                else {
-                    Optimize-TeamsCache
-                }
-                Write-Host '===FINISHED: Cleaning Teams cache' -ForegroundColor Green
+                Write-Host '=== STARTED : Cleaning Teams cache' -ForegroundColor Yellow
+                Clear-TeamsCache @TeamsParams
+                Write-Host '=== FINISHED: Cleaning Teams cache' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
@@ -132,16 +135,16 @@ function Invoke-ComputerCleanup {
 
         if ($CleanManager -eq $true) {
             try {
-                Write-Host '===STARTED : CleanMgr' -ForegroundColor Yellow
+                Write-Host '=== STARTED : CleanMgr' -ForegroundColor Yellow
                 Invoke-CleanManager
-                Write-Host '===FINISHED: CleanMgr' -ForegroundColor Green
+                Write-Host '=== FINISHED: CleanMgr' -ForegroundColor Green
             }
             catch {
                 Write-Error $_
             }
         }
     } # end Process
-    
+
     end {
         # Get disk space again and calculate difference
         $After = Get-DiskSpace
@@ -151,7 +154,7 @@ function Invoke-ComputerCleanup {
         $EndTime = (Get-Date)
         $TotalSeconds = [int]$(($EndTime - $StartTime).TotalSeconds)
         $TotalMinutes = [int]$(($EndTime - $StartTime).TotalMinutes)
-    
+
         # Report
         Write-Host '=== SCRIPT FINISHED' -ForegroundColor GREEN -BackgroundColor Black
         Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
@@ -161,7 +164,7 @@ function Invoke-ComputerCleanup {
         Write-Host "Free space AFTER      : $(($After.FreeSpace).ToString()) GB" -ForegroundColor Green -BackgroundColor Black
         Write-Host "Total space cleaned   : $TotalCleaned" -ForegroundColor Green -BackgroundColor Black
         Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
-    
+
         # Stop logging
         Stop-Transcript
     } # end End

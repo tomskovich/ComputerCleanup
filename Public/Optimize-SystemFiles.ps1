@@ -1,13 +1,11 @@
-function Optimize-SystemFolders {
+function Optimize-SystemFiles {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [int] $Days
     )
 
-    process {
-        Write-Output "Deleting SYSTEM folders/files older than $Days days old..."
-
+    begin {
         # Folders to clean up
         $Folders = @(
             "$env:SystemRoot\Temp",
@@ -24,13 +22,17 @@ function Optimize-SystemFolders {
             ErrorAction   = 'SilentlyContinue'
             WarningAction = 'SilentlyContinue'
         }
+    }
+
+    process {
+        Write-Output "Deleting SYSTEM folders/files older than $Days days old..."
 
         # General folders
         foreach ($Folder in $Folders) {
             if (Test-Path -Path $Folder) {
                 try {
-                    Get-ChildItem -Path $Folder @CommonParams | 
-                        Where-Object { ($_.CreationTime -and $_.LastWriteTime -lt $(Get-Date).AddDays(-$Days)) } | 
+                    Get-ChildItem -Path $Folder @CommonParams |
+                        Where-Object { ($_.CreationTime -and $_.LastWriteTime -lt $(Get-Date).AddDays(-$Days)) } |
                             Remove-Item @CommonParams
                 }
                 catch {

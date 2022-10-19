@@ -19,7 +19,7 @@ function Invoke-CleanManager {
         }
     }
 
-    # Enabled sections to be used by Disk Cleanup 
+    # Enabled sections to be used by Disk Cleanup
     $Sections = @(
         'Active Setup Temp Folders',
         'BranchCache',
@@ -83,7 +83,7 @@ function Invoke-CleanManager {
     catch {
         Write-Error $_
     }
-    
+
     Write-Verbose 'Waiting for CleanMgr and DismHost processes.'
     try {
         Get-Process -Name cleanmgr, dismhost -ErrorAction SilentlyContinue | Wait-Process
