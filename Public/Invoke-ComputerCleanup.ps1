@@ -12,6 +12,8 @@ function Invoke-ComputerCleanup {
 
         [switch] $SystemTemp,
 
+        [switch] $RecycleBin,
+
         [switch] $CleanManager,
 
         [switch] $BrowserCache,
@@ -37,35 +39,35 @@ function Invoke-ComputerCleanup {
 
     process {
         # Write all enabled script options to console
-        Write-Host "=== SCRIPT OPTIONS SUMMARY:" -ForegroundColor Cyan
+        Write-Host -ForegroundColor 'Cyan' "=== SCRIPT OPTIONS SUMMARY:" 
         switch ($PSBoundParameters.Keys) {
             'Days' {
                 Write-Host "-Days"
-                Write-Host "=== Files older than $Days old will be removed. This DOES NOT apply to options 'Teams'!" -ForegroundColor 'Yellow'
+                Write-Host  -ForegroundColor 'Cyan' "=== Files older than $Days old will be removed. This DOES NOT apply to options 'Teams'!"
             }
             'SystemTemp' {
                 Write-Host "-SystemTemp"
-                Write-Host "=== This will remove general system-wide temporary files and folders." -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove general system-wide temporary files and folders."
             }
             'UserTemp' {
                 Write-Host "-UserTemp"
-                Write-Host "=== This will remove temporary files and folders from user profiles." -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove temporary files and folders from user profiles."
             }
             'UserDownloads' {
                 Write-Host "-UserDownloads"
-                Write-Host "=== This will remove .ZIP, .RAR and .7z files >200MB and >$Days old from users' downloads folder!" -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove .ZIP, .RAR and .7z files >200MB and >$Days days old from users' downloads folder!"
             }
             'BrowserCache' {
                 Write-Host "-BrowserCache"
-                Write-Host "=== This will remove cache files for all browsers." -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove cache files for all browsers."
             }
             'CleanManager' {
                 Write-Host "-CleanManager"
-                Write-Host "=== This will run the Windows Disk Cleanup tool with predefined options." -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will run the Windows Disk Cleanup tool with predefined options."
             }
             'Teams' {
                 Write-Host "-BrowserCache"
-                Write-Host "=== This will remove cache files for all browsers." -ForegroundColor 'Yellow'
+                Write-Host -ForegroundColor 'Cyan' "=== This will remove cache files for all browsers."
             }
         }
 
@@ -80,7 +82,7 @@ function Invoke-ComputerCleanup {
                     throw "Script aborted by user input."
                 }
                 default {
-                    throw "Script aborted."
+                    throw "Script aborted by user input."
                 }
             }
         }
@@ -91,8 +93,8 @@ function Invoke-ComputerCleanup {
                 TempFiles = $true
             }
             if ($UserDownloads -eq $true) {
-                $UserParams.Downloads = $true
-                $UserParams.ArchiveFiles  = $true
+                $UserParams.Downloads    = $true
+                $UserParams.ArchiveFiles = $true
             }
             if ($BrowserCache -eq $true) {
                 $UserParams.BrowserCache = $true
@@ -108,9 +110,15 @@ function Invoke-ComputerCleanup {
         }
 
         if ($SystemTemp -eq $true) {
+            $SystemParams = @{
+                Days = $Days
+            }
+            if ($RecycleBin -eq $true) {
+                $SystemParams.RecycleBin = $true
+            }
             try {
                 Write-Host '=== STARTED : Cleaning System files' -ForegroundColor Yellow
-                Optimize-SystemFiles -Days $Days
+                Optimize-SystemFiles @SystemParams
                 Write-Host '=== FINISHED: Cleaning System files' -ForegroundColor Green
             }
             catch {
@@ -135,9 +143,9 @@ function Invoke-ComputerCleanup {
 
         if ($CleanManager -eq $true) {
             try {
-                Write-Host '=== STARTED : CleanMgr' -ForegroundColor Yellow
+                Write-Host '=== STARTED : Windows Disk Cleanup' -ForegroundColor Yellow
                 Invoke-CleanManager
-                Write-Host '=== FINISHED: CleanMgr' -ForegroundColor Green
+                Write-Host '=== FINISHED: Windows Disk Cleanup' -ForegroundColor Green
             }
             catch {
                 Write-Error $_

@@ -2,7 +2,9 @@ function Optimize-SystemFiles {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true, Position = 0)]
-        [int] $Days
+        [int] $Days,
+
+        [switch] $RecycleBin
     )
 
     begin {
@@ -25,7 +27,7 @@ function Optimize-SystemFiles {
     }
 
     process {
-        Write-Output "Deleting SYSTEM folders/files older than $Days days old..."
+        Write-Output "Cleaning SYSTEM folders/files older than $Days days old..."
 
         # General folders
         foreach ($Folder in $Folders) {
@@ -42,12 +44,14 @@ function Optimize-SystemFiles {
         }
 
         # Empty Recycle Bin
-        try {
-            Write-Verbose 'Clearing Recycle Bin'
-            Clear-RecycleBin -Force
-        }
-        catch {
-            Write-Error $_
+        if ($RecycleBin -eq $true) {
+            try {
+                Write-Verbose 'Clearing Recycle Bin'
+                Clear-RecycleBin -Force
+            }
+            catch {
+                Write-Error $_
+            }
         }
     } # end Process
 }
