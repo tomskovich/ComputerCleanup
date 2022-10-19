@@ -5,7 +5,7 @@ function Invoke-ComputerCleanup {
         [Parameter(Mandatory = $true, Position = 0)]
         [int] $Days,
 
-        # Will clean temporary files and folders in all userprofiles.
+        # Will clean temporary files and folders in all user profiles.
         [Parameter(ParameterSetName = 'User')]
         [switch] $UserTemp,
 
@@ -26,6 +26,7 @@ function Invoke-ComputerCleanup {
 
         [switch] $SystemTemp,
 
+        # Removes content of C:\Windows\SoftwareDistribution\Downloads folder.
         [switch] $SoftwareDistribution,
 
         [switch] $RecycleBin,
@@ -45,6 +46,9 @@ function Invoke-ComputerCleanup {
 
         # Get disk space for comparison afterwards
         $Before = Get-DiskSpace
+
+        # Initialize hashtable for report
+        $script:CleanupReport = [ordered]@{}
     }
 
     process {
@@ -102,11 +106,30 @@ function Invoke-ComputerCleanup {
             }
         }
 
-        if ($UserTemp -eq $true) {
-            $UserParams = @{
-                Days      = $Days
-                TempFiles = $true
+        # Create default/empty parameter hashtables
+        $UserParams = @{
+            Days      = $Days
+        }
+
+        $SystemParams = @{
+            Days = $Days
+        }
+
+        $TeamsParams = @{}
+
+        if ($CleanManager -eq $true) {
+            try {
+                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Windows Disk Cleanup'
+                Invoke-CleanManager
+                Write-Host -ForegroundColor 'Green' '=== FINISHED: Windows Disk Cleanup'
             }
+            catch {
+                Write-Error $_
+            }
+        }
+
+        if ($UserTemp -eq $true) {
+            $UserParams.TempFiles = $true
             if ($UserDownloads -eq $true) {
                 $UserParams.Downloads    = $true
                 $UserParams.ArchiveFiles = $true
@@ -115,9 +138,9 @@ function Invoke-ComputerCleanup {
                 $UserParams.BrowserCache = $true
             }
             try {
-                Write-Host '=== STARTED : Cleaning User Profiles' -ForegroundColor Yellow
+                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning User Profiles'
                 Optimize-UserProfiles @UserParams
-                Write-Host '=== FINISHED: Cleaning User Profiles' -ForegroundColor Green
+                Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning User Profiles'
             }
             catch {
                 Write-Error $_
@@ -125,16 +148,13 @@ function Invoke-ComputerCleanup {
         }
 
         if ($SystemTemp -eq $true) {
-            $SystemParams = @{
-                Days = $Days
-            }
             if ($RecycleBin -eq $true) {
                 $SystemParams.RecycleBin = $true
             }
             try {
-                Write-Host '=== STARTED : Cleaning System files' -ForegroundColor Yellow
+                Write-Host  -ForegroundColor 'Yellow' '=== STARTED : Cleaning System files'
                 Optimize-SystemFiles @SystemParams
-                Write-Host '=== FINISHED: Cleaning System files' -ForegroundColor Green
+                Write-Host  -ForegroundColor 'Green' '=== FINISHED: Cleaning System files'
             }
             catch {
                 Write-Error $_
@@ -142,31 +162,19 @@ function Invoke-ComputerCleanup {
         }
 
         if ($SoftwareDistribution -eq $true) {
-            Write-Host '=== STARTED : Cleaning SoftwareDistribution Download folder' -ForegroundColor Yellow
+            Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning SoftwareDistribution Download folder'
             Clear-SoftwareDistribution
-            Write-Host '=== FINISHED: Cleaning SoftwareDistribution Download folder' -ForegroundColor Green
+            Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning SoftwareDistribution Download folder'
         }
 
         if ($Teams -eq $true) {
-            $TeamsParams = @{}
             if ($Force -eq $true) {
                 $TeamsParams.Force = $true
             }
             try {
-                Write-Host '=== STARTED : Cleaning Teams cache' -ForegroundColor Yellow
+                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning Teams cache'
                 Clear-TeamsCache @TeamsParams
-                Write-Host '=== FINISHED: Cleaning Teams cache' -ForegroundColor Green
-            }
-            catch {
-                Write-Error $_
-            }
-        }
-
-        if ($CleanManager -eq $true) {
-            try {
-                Write-Host '=== STARTED : Windows Disk Cleanup' -ForegroundColor Yellow
-                Invoke-CleanManager
-                Write-Host '=== FINISHED: Windows Disk Cleanup' -ForegroundColor Green
+                Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning Teams cache'
             }
             catch {
                 Write-Error $_
@@ -175,24 +183,29 @@ function Invoke-ComputerCleanup {
     } # end Process
 
     end {
-        # Get disk space again and calculate difference
-        $After = Get-DiskSpace
-        $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
-
         # Get time again, calculate total run time
-        $EndTime = (Get-Date)
+        $EndTime      = (Get-Date)
         $TotalSeconds = [int]$(($EndTime - $StartTime).TotalSeconds)
         $TotalMinutes = [int]$(($EndTime - $StartTime).TotalMinutes)
 
+        # Get disk space again and calculate difference
+        $After        = Get-DiskSpace
+        $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
+
         # Report
-        Write-Host '=== SCRIPT FINISHED' -ForegroundColor GREEN -BackgroundColor Black
-        Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
-        Write-Host "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)" -ForegroundColor Green -BackgroundColor Black
-        Write-Host "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes" -ForegroundColor Green -BackgroundColor Black
-        Write-Host "Free space BEFORE     : $(($Before.FreeSpace).ToString()) GB" -ForegroundColor Green -BackgroundColor Black
-        Write-Host "Free space AFTER      : $(($After.FreeSpace).ToString()) GB" -ForegroundColor Green -BackgroundColor Black
-        Write-Host "Total space cleaned   : $TotalCleaned" -ForegroundColor Green -BackgroundColor Black
-        Write-Host ''.PadLeft(76, '-') -ForegroundColor Green -BackgroundColor Black
+        Write-Host '=== SCRIPT FINISHED' -BackgroundColor Black
+        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
+        Write-Host "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)" -BackgroundColor Black
+        Write-Host "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes" -BackgroundColor Black
+        Write-Host "Free space BEFORE     : $(($Before.FreeSpace).ToString()) GB" -BackgroundColor Black
+        Write-Host "Free space AFTER      : $(($After.FreeSpace).ToString()) GB" -BackgroundColor Black
+        Write-Host "Total space cleaned   : $TotalCleaned" -BackgroundColor Black
+        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
+
+        Write-Host '=== SECTIONS BREAKDOWN' -BackgroundColor Black
+        $script:CleanupReport."TOTAL" = $TotalCleaned
+        $script:CleanupReport
+        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
 
         # Stop logging
         Stop-Transcript

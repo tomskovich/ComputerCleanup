@@ -5,6 +5,9 @@ function Clear-TeamsCache {
     )
 
     begin {
+        # Get disk space for comparison afterwards
+        $Before = Get-DiskSpace
+
         # Get all user folders, exclude administrators and default users
         $Users = Get-UserFolders
 
@@ -30,7 +33,7 @@ function Clear-TeamsCache {
     } # end Begin
 
     process {
-        Write-Output "Starting Teams Cache cleanup process..."
+        Write-Verbose "Starting Teams Cache cleanup process..."
         if ( -not ($Force)) {
             # Prompt for user verification before continuing
             $Confirmation = Read-Host -Prompt "Are you sure you want to run the cleanup with above settings? [Y/N]"
@@ -73,4 +76,13 @@ function Clear-TeamsCache {
             }
         }
     } # end Process
+
+    end {
+        # Get disk space again and calculate difference
+        $After        = Get-DiskSpace
+        $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
+
+        # Add to report
+        $script:CleanupReport.TeamsCache = $TotalCleaned
+    }
 }

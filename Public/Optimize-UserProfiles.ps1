@@ -31,6 +31,9 @@ function Optimize-UserProfiles {
     )
 
     begin {
+        # Get disk space for comparison afterwards
+        $Before = Get-DiskSpace
+        
         # Get all user folders, exclude administrators and default users
         $Users = Get-UserFolders
 
@@ -134,4 +137,13 @@ function Optimize-UserProfiles {
             }
         }
     } # end Process
+
+    end {
+        # Get disk space again and calculate difference
+        $After        = Get-DiskSpace
+        $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
+
+        # Add to report
+        $script:CleanupReport.UserProfiles = $TotalCleaned
+    }
 }

@@ -8,6 +8,9 @@ function Optimize-SystemFiles {
     )
 
     begin {
+        # Get disk space for comparison afterwards
+        $Before = Get-DiskSpace
+
         # Folders to clean up
         $Folders = @(
             "$env:SystemRoot\Temp",
@@ -54,4 +57,13 @@ function Optimize-SystemFiles {
             }
         }
     } # end Process
+
+    end {
+        # Get disk space again and calculate difference
+        $After        = Get-DiskSpace
+        $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
+
+        # Add to report
+        $script:CleanupReport."System files" = $TotalCleaned
+    }
 }
