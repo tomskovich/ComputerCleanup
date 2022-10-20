@@ -1,6 +1,14 @@
+<#
+    .SYNOPSIS
+    Logging function
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://ucsystems.nl / https://tech-tom.com
+#>
 function Start-Logging {
     param (
-        # Name of logging file
+        # Name of logging file - date and time will be appended.
         [Parameter(Mandatory=$true)]
         [Alias('Name')]
         [String] $LogName
@@ -14,7 +22,7 @@ function Start-Logging {
     process {
         try {
             # Start Logging / Transcript
-            Write-Host (Start-Transcript -Path $LogFile) -ForegroundColor Green
+            Write-Output (Start-Transcript -Path $LogFile)
         }
         catch {
             Write-Error $_

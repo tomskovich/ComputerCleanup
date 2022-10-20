@@ -1,5 +1,12 @@
+<#
+    .SYNOPSIS
+    Gets all user folders, excluding Administrators and Default/Public users
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://ucsystems.nl / https://tech-tom.com
+#>
 function Get-UserFolders {
-    # Get all user folders, exclude administrators and default users
     $Users = Get-ChildItem -Directory -Path "$env:SYSTEMDRIVE\Users" | Where-Object { 
         $_.Name -NotLike '*administrator*' -and 
         $_.Name -NotLike '*admin*' -and 

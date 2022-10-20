@@ -1,3 +1,11 @@
+<#
+    .SYNOPSIS
+    Gets available disk space. Used for reporting.
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://ucsystems.nl / https://tech-tom.com
+#>
 function Get-DiskSpace {
     $Disk = Get-Volume | Where-Object { $_.DriveLetter -eq 'C' } | Select-Object DriveLetter, FriendlyName, Size, SizeRemaining
 
@@ -10,6 +18,6 @@ function Get-DiskSpace {
             Expression = { [math]::round($_.SizeRemaining / 1GB, 2) };
             Name       = 'FreeSpace';
         }
-        $Disk | Select-Object DriveLetter, $TotalSize, $FreeSpace
+        return $Disk | Select-Object DriveLetter, $TotalSize, $FreeSpace
     }
 }

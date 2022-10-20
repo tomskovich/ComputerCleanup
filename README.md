@@ -11,21 +11,28 @@ General description
 - [Get-DiskSpace]()
     - Gets available disk space. Used for reporting.
 - [Get-UserFolders]()
-    - Gets user profile folders. Excludes administrators.
+    - Gets all user folders, excluding Administrators and Default/Public users
 - [Start-Logging]()
     - Logging function.
 
 # Functions\Public
 
-- [Clear-TeamsCache]() 
-    - Description
-- [Clear-SoftwareDistribution]()
-    - Description
-- [Invoke-CleanManager]() 
-    - Description
 - [Invoke-ComputerCleanup]() 
-    - Description
+    - Main controller function to invoke one or multiple cleanup functions included in this module.
+- [Clear-BrowserCache]()
+	- Removes browser cache files for all users.
+    - Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
+- [Clear-FontCache]()
+	- Removes user font cache files located in "C:\Windows\ServiceProfiles\LocalService\AppData\Local\"
+- [Clear-SoftwareDistribution]()
+    - Clears the "C:\Windows\SoftwareDistribution\Downloads" folder.
+- [Clear-TeamsCache]() 
+    - Removes Microsoft Teams cache files for all users.
+- [Invoke-CleanManager]() 
+    - Runs the Windows Disk Cleanup tool with predefined options.
 - [Optimize-SystemFiles]() 
-    - Description
+    - Removes common system-wide temporary files and folders older than $Days old.
+    - OPTIONAL: Clears Windows Recycle Bin
 - [Optimize-UserProfiles]() 
-    - Description
+    - Removes common temporary files and folders older than $Days days old from user profiles.
+

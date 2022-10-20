@@ -12,9 +12,9 @@ function Assert-RunAsAdministrator {
 
     # Check user is running the script is member of Administrator Group
     if ($CurrentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)) {
-        Write-Output 'Script is running with Administrator privileges.'
+        Write-Verbose 'Script is running with Administrator privileges.'
     }
     else {
-        throw "Script/function is NOT running with Administrator priviliges. Please re-run as Administrator."
+        throw "Script/function is NOT running with Administrator privileges. Please re-run as Administrator."
     }
 }

@@ -2,14 +2,16 @@
 $Private = (Get-ChildItem -Path (Join-Path $PSScriptRoot 'Private') -Filter *.ps1 -Recurse -ErrorAction SilentlyContinue) 
 $Public = (Get-ChildItem -Path (Join-Path $PSScriptRoot 'Public') -Filter *.ps1 -Recurse)
 
-#Dot source the files
-Foreach ($import in @($Public + $Private)) {
-    Try {
-        . $import.fullname
+# Load private scripts first 
+($Private + $Public) | ForEach-Object {
+    try {
+        Write-Verbose "Loading $($_.FullName)"
+        . $_.FullName
     }
-    Catch {
-        Write-Error -Message "Failed to import function $($import.fullname): $_"
+    catch {
+        Write-Warning $_.Exception.Message
     }
 }
+
 Export-ModuleMember -Function $Private.Basename -ErrorAction SilentlyContinue
-Export-ModuleMember -Function $Public.Basename
+Export-ModuleMember -Function $Public.Basename 

@@ -1,37 +1,74 @@
+<#
+    .SYNOPSIS
+    Main controller function to invoke one or multiple cleanup functions included in this module.
+
+    .LINK
+    https://tech-tom.com
+
+    .EXAMPLE
+    Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -RecycleBin 
+
+    Will do the following:
+        - Run the Windows Disk Cleanup tool
+        - Remove temp files in User profiles that are older than 30 days old.
+        - Remove temp files in system that are older than 30 days old.
+        - Clean the "C:\Windows\SoftwareDistribution\Downloads" folder.
+        - Empty Recycle Bin.
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://tech-tom.com / https://ucsystems.nl
+#>
 function Invoke-ComputerCleanup {
     [CmdletBinding()]
     param (
         # Only remove files and folders older than $Days old. 
+        # This does NOT apply for parameters: -BrowserCache, -TeamsCache, -SoftwareDistribution, -FontCache
         [Parameter(Mandatory = $true, Position = 0)]
         [int] $Days,
 
-        # Will clean temporary files and folders in all user profiles.
-        [Parameter(ParameterSetName = 'User')]
-        [switch] $UserTemp,
+        # Runs the Windows Disk Cleanup tool with predefined options.
+        [switch] $CleanManager,
 
-        [Parameter(ParameterSetName = 'User')]
-        [switch] $UserDownloads,
+        # Removes common system-wide temporary files and folders older than $Days old.
+        [switch] $SystemTemp,
 
-        [Parameter(ParameterSetName = 'User')]
-        [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
+        # Clears the "C:\Windows\SoftwareDistribution\Downloads" folder. 
+        [switch] $SoftwareDistribution,
 
+        # Clears user font cache files located in "C:\Windows\ServiceProfiles\LocalService\AppData\Local\"
+        [switch] $FontCache,
+
+        # Clears browser cache files for all users.
+        # Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
+        # WARNING: This will stop ALL running browser processes. Running outside of working hours is advised.
         [Parameter(ParameterSetName = 'User')]
         [switch] $BrowserCache,
 
+        # Clears Microsoft Teams cache files for all users.
+        # WARNING: This will stop ALL running Teams processes. Running outside of working hours is advised.
         [Parameter(ParameterSetName = 'User')]
-        [switch] $Teams,
+        [switch] $TeamsCache,
 
+        # Enabling this parameter will skip confirmation for parameters -Teams and -BrowserCache.
+        # WARNING: Please use with caution!
         [Parameter(ParameterSetName = 'User')]
         [switch] $Force,
 
-        [switch] $SystemTemp,
+        # Removes common temporary files and folders older than $Days days old from user profiles.
+        [Parameter(ParameterSetName = 'User')]
+        [switch] $UserTemp,
 
-        # Removes content of C:\Windows\SoftwareDistribution\Downloads folder.
-        [switch] $SoftwareDistribution,
+        # Removes .ZIP, .RAR and .7z (default) files larger than (default) 500MB and more than $Days days old from users' downloads folder.
+        [Parameter(ParameterSetName = 'User')]
+        [switch] $UserDownloads,
 
-        [switch] $RecycleBin,
+        # List of filetypes to remove when parameter "-UserDownloads" is used. Default: .ZIP, .RAR, .7z, .ISO.
+        [Parameter(ParameterSetName = 'User')]
+        [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
 
-        [switch] $CleanManager
+        # Clears the Windows Recycle Bin
+        [switch] $RecycleBin
     )
 
     begin {
@@ -47,47 +84,59 @@ function Invoke-ComputerCleanup {
         # Get disk space for comparison afterwards
         $Before = Get-DiskSpace
 
-        # Initialize hashtable for report
+        # Initialize hashtables/arrays for reporting
         $script:CleanupReport = [ordered]@{}
+        $ParamReport          = [ordered]@{}
+        $RiskyParamReport     = [ordered]@{}
     }
 
     process {
-        # Write all enabled script options to console
-        Write-Host -ForegroundColor 'Cyan' "=== SCRIPT OPTIONS SUMMARY:" 
+        # Report parameter information to console
         switch ($PSBoundParameters.Keys) {
             'Days' {
-                Write-Host "-Days"
-                Write-Host  -ForegroundColor 'Cyan' "=== Files older than $Days old will be removed. This DOES NOT apply to options 'Teams'!"
-            }
-            'SystemTemp' {
-                Write-Host "-SystemTemp"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove general system-wide temporary files and folders."
-            }
-            'UserTemp' {
-                Write-Host "-UserTemp"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove temporary files and folders from user profiles."
-            }
-            'UserDownloads' {
-                Write-Host "-UserDownloads"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove .ZIP, .RAR and .7z files >200MB and >$Days days old from users' downloads folder!"
-            }
-            'BrowserCache' {
-                Write-Host "-BrowserCache"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove cache files for all browsers."
+                $ParamReport.Days = "Files older than $Days days will be removed. This DOES NOT apply to options 'Teams'!"
             }
             'CleanManager' {
-                Write-Host "-CleanManager"
-                Write-Host -ForegroundColor 'Cyan' "=== This will run the Windows Disk Cleanup tool with predefined options."
+                $ParamReport.CleanManager = "Runs the Windows Disk Cleanup tool with predefined options."
+            }
+            'SystemTemp' {
+                $ParamReport.SystemTemp = "Removes common system-wide temporary files and folders older than $Days old."
+            }
+            'UserTemp' {
+                $ParamReport.UserTemp = "Removes common temporary files and folders older than $Days days old from user profiles."
+            }
+            'UserDownloads' {
+                $ParamReport.UserDownloads = "Removes .ZIP, .RAR and .7z (default) files larger than (default) 500MB and older than $Days days old from users' downloads folder."
+            }
+            'BrowserCache' {
+                $ParamReport.BrowserCache      = "Clears cache files for all browsers."
+                $RiskyParamReport.BrowserCache = "This will stop ALL running browser processes. Running outside of working hours is advised."
             }
             'SoftwareDistribution' {
-                Write-Host "-SoftwareDistribution"
-                Write-Host -ForegroundColor 'Cyan' "=== This will clean the 'C:\Windows\SoftwareDistribution\Download' folder."
+                $ParamReport.SoftwareDistribution = "Cleans the 'C:\Windows\SoftwareDistribution\Download' folder."
             }
-            'Teams' {
-                Write-Host "-Teams"
-                Write-Host -ForegroundColor 'Cyan' "=== This will remove Microsoft Teams cache files for all users."
-                Write-Host -ForegroundColor 'Yellow' "INFO: Use parameter "-Force" to skip confirmation."
+            'FontCache' {
+                $ParamReport.FontCache = "Removes font cache files in 'C:\Windows\ServiceProfiles\LocalService\AppData\Local\'"
             }
+            'TeamsCache' {
+                $ParamReport.TeamsCache      = "Clears Microsoft Teams cache files for all users."
+                $RiskyParamReport.TeamsCache = "This will stop ALL running Teams processes. Running outside of working hours is advised."
+            }
+            'RecycleBin' {
+                $ParamReport.RecycleBin = "Clears the Windows Recycle Bin"
+            }
+        }
+
+        if (($PSBoundParameters.Keys).Count -gt 0) {
+            Write-Output ''.PadLeft(76, '-')
+            Write-Output "=== SCRIPT OPTIONS SUMMARY:" 
+            $ParamReport.keys | Select-Object @{l='Parameter';e={$_}},@{l='Description';e={$ParamReport.$_}} | Format-Table
+            # Report risky parameters
+            if ($RiskyParamReport.Count -gt 0) {
+                Write-Warning "Some commands are dangerous to execute on a live environment. Please review:" 
+                $RiskyParamReport.keys | Select-Object @{l='Parameter';e={$_}},@{l='Warning';e={$RiskyParamReport.$_}} | Format-Table
+            }
+            Write-Output ''.PadLeft(76, '-')
         }
 
         # Prompt for user verification before continuing
@@ -106,22 +155,11 @@ function Invoke-ComputerCleanup {
             }
         }
 
-        # Create default/empty parameter hashtables
-        $UserParams = @{
-            Days      = $Days
-        }
-
-        $SystemParams = @{
-            Days = $Days
-        }
-
-        $TeamsParams = @{}
-
         if ($CleanManager -eq $true) {
             try {
-                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Windows Disk Cleanup'
+                Write-Output '=== STARTED : Windows Disk Cleanup'
                 Invoke-CleanManager
-                Write-Host -ForegroundColor 'Green' '=== FINISHED: Windows Disk Cleanup'
+                Write-Output '=== FINISHED: Windows Disk Cleanup'
             }
             catch {
                 Write-Error $_
@@ -129,18 +167,18 @@ function Invoke-ComputerCleanup {
         }
 
         if ($UserTemp -eq $true) {
+            $UserParams = @{
+                Days      = $Days
+            }
             $UserParams.TempFiles = $true
             if ($UserDownloads -eq $true) {
                 $UserParams.Downloads    = $true
                 $UserParams.ArchiveFiles = $true
             }
-            if ($BrowserCache -eq $true) {
-                $UserParams.BrowserCache = $true
-            }
             try {
-                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning User Profiles'
+                Write-Output '=== STARTED : Cleaning User Profiles'
                 Optimize-UserProfiles @UserParams
-                Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning User Profiles'
+                Write-Output '=== FINISHED: Cleaning User Profiles'
             }
             catch {
                 Write-Error $_
@@ -148,13 +186,14 @@ function Invoke-ComputerCleanup {
         }
 
         if ($SystemTemp -eq $true) {
-            if ($RecycleBin -eq $true) {
-                $SystemParams.RecycleBin = $true
+            $SystemParams = @{
+                Days      = $Days
+                TempFiles = $true
             }
             try {
-                Write-Host  -ForegroundColor 'Yellow' '=== STARTED : Cleaning System files'
+                Write-Output '=== STARTED : Cleaning System files'
                 Optimize-SystemFiles @SystemParams
-                Write-Host  -ForegroundColor 'Green' '=== FINISHED: Cleaning System files'
+                Write-Output '=== FINISHED: Cleaning System files'
             }
             catch {
                 Write-Error $_
@@ -162,19 +201,48 @@ function Invoke-ComputerCleanup {
         }
 
         if ($SoftwareDistribution -eq $true) {
-            Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning SoftwareDistribution Download folder'
+            Write-Output '=== STARTED : Cleaning SoftwareDistribution Download folder'
             Clear-SoftwareDistribution
-            Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning SoftwareDistribution Download folder'
+            Write-Output '=== FINISHED: Cleaning SoftwareDistribution Download folder'
         }
 
-        if ($Teams -eq $true) {
+        if ($FontCache -eq $true) {
+            Write-Output '=== STARTED : Cleaning Font Cache'
+            Clear-FontCache
+            Write-Output '=== FINISHED: Cleaning Cleaning Font Cache'
+        }
+
+        if ($BrowserCache -eq $true) {
+            try {
+                Write-Output '=== STARTED : Cleaning Browser Cache'
+                Clear-BrowserCache
+                Write-Output '=== FINISHED: Cleaning Browser Cache'
+            }
+            catch {
+                Write-Error $_
+            }
+        }
+
+        if ($TeamsCache-eq $true) {
+            $TeamsParams = @{}
             if ($Force -eq $true) {
                 $TeamsParams.Force = $true
             }
             try {
-                Write-Host -ForegroundColor 'Yellow' '=== STARTED : Cleaning Teams cache'
+                Write-Output '=== STARTED : Cleaning Teams cache'
                 Clear-TeamsCache @TeamsParams
-                Write-Host -ForegroundColor 'Green' '=== FINISHED: Cleaning Teams cache'
+                Write-Output '=== FINISHED: Cleaning Teams cache'
+            }
+            catch {
+                Write-Error $_
+            }
+        }
+
+        if ($RecycleBin -eq $true) {
+            try {
+                Write-Output '=== STARTED : Cleaning Recycle Bin'
+                Optimize-SystemFiles $Days -RecycleBin 
+                Write-Output '=== FINISHED: Cleaning Recycle Bin'
             }
             catch {
                 Write-Error $_
@@ -193,19 +261,20 @@ function Invoke-ComputerCleanup {
         $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
 
         # Report
-        Write-Host '=== SCRIPT FINISHED' -BackgroundColor Black
-        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
-        Write-Host "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)" -BackgroundColor Black
-        Write-Host "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes" -BackgroundColor Black
-        Write-Host "Free space BEFORE     : $(($Before.FreeSpace).ToString()) GB" -BackgroundColor Black
-        Write-Host "Free space AFTER      : $(($After.FreeSpace).ToString()) GB" -BackgroundColor Black
-        Write-Host "Total space cleaned   : $TotalCleaned" -BackgroundColor Black
-        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
-
-        Write-Host '=== SECTIONS BREAKDOWN' -BackgroundColor Black
-        $script:CleanupReport."TOTAL" = $TotalCleaned
+        Write-Output ''.PadLeft(76, '-')
+        Write-Output '=== SCRIPT FINISHED'
+        Write-Output ''.PadLeft(76, '-')
+        Write-Output '=== PER-SECTION BREAKDOWN'
+        $script:CleanupReport.TOTAL = $TotalCleaned
         $script:CleanupReport
-        Write-Host ''.PadLeft(76, '-') -BackgroundColor Black
+        Write-Output ''.PadLeft(76, '-')
+        Write-Output ''.PadLeft(76, '-')
+        Write-Output "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)"
+        Write-Output "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes"
+        Write-Output "Free space BEFORE     : $(($Before.FreeSpace).ToString()) GB"
+        Write-Output "Free space AFTER      : $(($After.FreeSpace).ToString()) GB"
+        Write-Output "Total space cleaned   : $TotalCleaned"
+        Write-Output ''.PadLeft(76, '-')
 
         # Stop logging
         Stop-Transcript

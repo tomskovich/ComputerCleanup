@@ -1,3 +1,11 @@
+<#
+    .SYNOPSIS
+    Runs the Windows Disk Cleanup tool with predefined options.
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://ucsystems.nl / https://tech-tom.com
+#>
 function Invoke-CleanManager {
     begin {
         # Get disk space for comparison afterwards
@@ -109,7 +117,12 @@ function Invoke-CleanManager {
         $After        = Get-DiskSpace
         $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
 
-        # Add to report
-        $script:CleanupReport.CleanManager = $TotalCleaned
+        # Report
+        if ($null -ne $script:CleanupReport) {
+            $script:CleanupReport.CleanManager = $TotalCleaned
+        }
+        else {
+            Write-Output "Total space cleaned: $TotalCleaned"
+        }
     }
 }

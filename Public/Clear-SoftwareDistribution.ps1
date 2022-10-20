@@ -1,3 +1,11 @@
+<#
+    .SYNOPSIS
+    Cleans the "C:\Windows\SoftwareDistribution\Downloads" folder. 
+
+    .NOTES
+    Author:   Tom de Leeuw
+    Website:  https://ucsystems.nl / https://tech-tom.com
+#>
 function Clear-SoftwareDistribution {
     begin {
         # Get disk space for comparison afterwards
@@ -59,7 +67,13 @@ function Clear-SoftwareDistribution {
         # Get disk space again and calculate difference
         $After = Get-DiskSpace
         $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
-        # Add to report
-        $script:CleanupReport.SoftwareDistribution = $TotalCleaned
+
+        # Report
+        if ($null -ne $script:CleanupReport) {
+            $script:CleanupReport.SoftwareDistribution = $TotalCleaned
+        }
+        else {
+            Write-Output "Total space cleaned: $TotalCleaned"
+        }
     }
 }

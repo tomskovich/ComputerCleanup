@@ -1,13 +1,13 @@
 <#
     .SYNOPSIS
-    Clears Microsoft Teams cache files for all users.
+    Clears browser cache files for all users.
+    Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
 
     .NOTES
     Author:   Tom de Leeuw
     Website:  https://ucsystems.nl / https://tech-tom.com
 #>
-function Clear-TeamsCache {
-    [CmdletBinding(ConfirmImpact='Medium', SupportsShouldProcess = $true)]
+function Clear-BrowserCache {
     param(
         # Enabling this parameter will skip confirmation.
         [Switch] $Force
@@ -22,13 +22,23 @@ function Clear-TeamsCache {
 
         # Folders to clean up
         $Folders = @(
-            'AppData\Roaming\Microsoft\Teams\blob_storage',
-            'AppData\Roaming\Microsoft\Teams\databases',
-            'AppData\Roaming\Microsoft\Teams\cache',
-            'AppData\Roaming\Microsoft\Teams\gpucache',
-            'AppData\Roaming\Microsoft\Teams\Indexeddb',
-            'AppData\Roaming\Microsoft\Teams\Local Storage',
-            'AppData\Roaming\Microsoft\Teams\tmp'
+            # Edge
+            '\AppData\Local\Microsoft\Microsoft\Edge\User Data\Default\Cache',
+            # Internet Explorer
+            '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
+            '\AppData\Local\Microsoft\Windows\WebCache',
+            '\AppData\Local\Microsoft\Windows\INetCache',
+            '\AppData\Local\Microsoft\Internet Explorer\DOMStore',
+            # Google Chrome
+            '\AppData\Local\Google\Chrome\User Data\Default\Cache',
+            '\AppData\Local\Google\Chrome\User Data\Default\Cache2\entries',
+            '\AppData\Local\Google\Chrome\User Data\Default\Media Cache',
+            # Firefox
+            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache',
+            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache2\entries',
+            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\thumbnails',
+            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\webappsstore.sqlite',
+            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
         )
 
         # Parameters for Get-ChildItem and Remove-Item
@@ -42,10 +52,10 @@ function Clear-TeamsCache {
     }
 
     process {
-        Write-Verbose "Starting Teams Cache cleanup process..."
+        Write-Verbose "Starting browser cache cleanup process..."
         if ( -not ($Force)) {
             # Prompt for user verification before continuing
-            Write-Warning "This will stop all running Teams processes!"
+            Write-Warning "This will stop all running browser processes!"
             $Confirmation = Read-Host -Prompt "Are you sure you want to continue? [Y/N]"
             while (($Confirmation) -notmatch "[yY]") {
                 switch -regex ($Confirmation) {
@@ -62,10 +72,10 @@ function Clear-TeamsCache {
             }
         }
 
-        # Kill Teams process(es)
+        # Kill browser process(es)
         try {
-            Write-Verbose "Killing Teams process(es)..."
-            Get-Process -ProcessName 'Teams' -ErrorAction 'SilentlyContinue' | Stop-Process
+            Write-Verbose "Killing browser process(es)..."
+            Get-Process -ProcessName 'Chrome', 'Firefox', 'iexplore' -ErrorAction 'SilentlyContinue' | Stop-Process
         }
         catch {
             Write-Error $_
@@ -77,13 +87,13 @@ function Clear-TeamsCache {
                 If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
                     try {
                         Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams | Remove-Item @CommonParams
+                        Write-Verbose "Removed browser cache files for $Username."
                     }
                     catch {
                         Write-Error $_
                     }
                 }
             }
-            Write-Verbose "Removed Teams Cache files for $Username."
         }
     }
 
@@ -94,11 +104,10 @@ function Clear-TeamsCache {
 
         # Report
         if ($null -ne $script:CleanupReport) {
-            $script:CleanupReport.TeamsCache = $TotalCleaned
+            $script:CleanupReport.BrowserCache = $TotalCleaned
         }
         else {
             Write-Output "Total space cleaned: $TotalCleaned"
         }
     }
 }
-
