@@ -1,4 +1,4 @@
-## Installation
+# ComputerCleanup
 
 `IMPORTANT: This module is still a work in progress!`
 
@@ -10,6 +10,8 @@ I frequently use this on some RDS servers, and my local machine.
 You can install the ComputerCleanup module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ComputerCleanup/).
 
 More information can be found on my [Blog](https://tech-tom.com/posts/powershell-computercleanup-module/)
+
+## Installation
 
 ```powershell
 # One time setup
@@ -34,7 +36,7 @@ If you're not sure where your Modules folder is, open up a PowerShell prompt and
 
 ## Functions\Public
 
-- #### [Invoke-ComputerCleanup](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Invoke-ComputerCleanup.ps1) 
+- [Invoke-ComputerCleanup](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Invoke-ComputerCleanup.ps1) 
     - Main controller function to invoke one or multiple cleanup functions included in this module.
 - [Clear-BrowserCache](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Clear-BrowserCache.ps1)
 	- Removes browser cache files for all users.
@@ -55,7 +57,7 @@ If you're not sure where your Modules folder is, open up a PowerShell prompt and
 
 ## Functions\Private
 
-- #### [Assert-RunAsAdministrator](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Assert-RunAsAdministrator.ps1) 
+- [Assert-RunAsAdministrator](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Assert-RunAsAdministrator.ps1) 
     - Verifies if script/function is running with Administrator privileges.
 - [Get-DiskSpace](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Get-DiskSpace.ps1)
     - Gets available disk space. Used for reporting.
@@ -73,11 +75,11 @@ Generally, the only function/command you'll need is `Invoke-ComputerCleanup`. He
 ```
 
 Will do the following:
-    - Run the Windows Disk Cleanup tool
-    - Remove temp files in User profiles that are older than 30 days old.
-    - Remove temp files in system that are older than 30 days old.
-    - Clean the "C:\Windows\SoftwareDistribution\Downloads" folder.
-    - Empty Recycle Bin.
+	- Run the Windows Disk Cleanup tool
+	- Remove temp files in User profiles that are older than 30 days old.
+	- Remove temp files in system that are older than 30 days old.
+	- Clean the "C:\Windows\SoftwareDistribution\Downloads" folder.
+	- Empty Recycle Bin.
 
 You'll be prompted for confirmation at the beginning, and there will be a report at the end.
 
