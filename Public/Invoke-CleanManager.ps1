@@ -1,10 +1,47 @@
 <#
     .SYNOPSIS
     Runs the Windows Disk Cleanup tool with predefined options.
+    If you want to enable- or disable some options, you can comment or uncomment lines in $Sections.
+
+    .DESCRIPTION
+    Default enabled options are:
+        'Active Setup Temp Folders',
+        'BranchCache',
+        'Device Driver Packages',
+        'Downloaded Program Files',
+        'GameNewsFiles',
+        'GameStatisticsFiles',
+        'GameUpdateFiles',
+        'Memory Dump Files',
+        'Offline Pages Files',
+        'Old ChkDsk Files',
+        'Previous Installations',
+        'Service Pack Cleanup',
+        'Setup Log Files',
+        'System error memory dump files',
+        'System error minidump files',
+        'Temporary Files',
+        'Temporary Setup Files',
+        'Thumbnail Cache',
+        'Update Cleanup',
+        'Upgrade Discarded Files',
+        'Windows Defender',
+        'Windows ESD installation files',
+        'Windows Error Reporting Archive Files'
+        'Windows Error Reporting Queue Files',
+        'Windows Error Reporting System Archive Files',
+        'Windows Error Reporting System Queue Files',
+        'Windows Upgrade Log Files'
+
+    Default disabled options:
+        "User file versions"
+        'Recycle Bin',
+        'Temporary Sync Files',
+        "DownloadsFolder",
 
     .NOTES
     Author:   Tom de Leeuw
-    Website:  https://ucsystems.nl / https://tech-tom.com
+    Website:  https://tech-tom.com / https://ucsystems.nl
 #>
 function Invoke-CleanManager {
     begin {

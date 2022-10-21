@@ -24,8 +24,8 @@ function Invoke-ComputerCleanup {
     param (
         # Only remove files and folders older than $Days old. 
         # This does NOT apply for parameters: -BrowserCache, -TeamsCache, -SoftwareDistribution, -FontCache
-        [Parameter(Mandatory = $true, Position = 0)]
-        [int] $Days,
+        [ValidateNotNullOrEmpty()]
+        [int] $Days = 30,
 
         # Runs the Windows Disk Cleanup tool with predefined options.
         [switch] $CleanManager,
@@ -88,6 +88,10 @@ function Invoke-ComputerCleanup {
         $script:CleanupReport = [ordered]@{}
         $ParamReport          = [ordered]@{}
         $RiskyParamReport     = [ordered]@{}
+
+        if (! ($Days)) {
+            
+        }
     }
 
     process {
@@ -107,6 +111,7 @@ function Invoke-ComputerCleanup {
             }
             'UserDownloads' {
                 $ParamReport.UserDownloads = "Removes .ZIP, .RAR and .7z (default) files larger than (default) 500MB and older than $Days days old from users' downloads folder."
+                $RiskyParamReport.UserDownloads = "This will remove users' personal files! Please make sure they are informed."
             }
             'BrowserCache' {
                 $ParamReport.BrowserCache      = "Clears cache files for all browsers."
