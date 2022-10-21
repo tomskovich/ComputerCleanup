@@ -83,8 +83,8 @@ Generally, the only function/command you'll need is `Invoke-ComputerCleanup`. He
 
 You'll be prompted for confirmation at the beginning, and there will be a report at the end.
 
-![Invoke-ComputerCleanup](/computercleanup_example1_start.png#center)
-![Invoke-ComputerCleanup](/computercleanup_example1_finish.png#center)
+![Invoke-ComputerCleanup](https://tech-tom.com/computercleanup_example1_start.png#center)
+![Invoke-ComputerCleanup](https://tech-tom.com/computercleanup_example1_finish.png#center)
 
 Some parameters will stop some processes, which can be impactful in live environments.
 Therefore, I've added warnings for some parameters. Example:
@@ -92,7 +92,7 @@ Therefore, I've added warnings for some parameters. Example:
 ``` powershell
     Invoke-ComputerCleanup -Days 30 -BrowserCache -TeamsCache -UserDownloads
 ```
-![paramwarnings](/paramwarnings.png#center)
+![paramwarnings](https://tech-tom.com/paramwarnings.png#center)
 
 ### All parameters for function "Invoke-ComputerCleanup"
 
