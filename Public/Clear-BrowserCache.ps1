@@ -105,7 +105,7 @@ function Clear-BrowserCache {
                 Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process
             }
             catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
-                Write-Error "No running $($_.Exception.ProcessName) processes."
+                Write-Information "No running $($_.Exception.ProcessName) processes."
             }
         }
 
@@ -115,18 +115,10 @@ function Clear-BrowserCache {
                 $FolderToClean = "$env:SYSTEMDRIVE\Users\$Username\$Folder"
                 If (Test-Path -Path $FolderToClean) {
                     try {
-                        $ItemsToRemove = Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams
-                        foreach ($Item in $ItemsToRemove) {
-                            try {
-                                Remove-Item $Item @CommonParams
-                            }
-                            catch [System.IO.IOException] {
-                                Write-Error "File in use: $($_.TargetObject)"
-                            }
-                            catch [System.UnauthorizedAccessException] {
-                                Write-Error "Access denied for path: $($_.TargetObject)"
-                            }
-                        }
+                        Get-ChildItem -Path $FolderToClean -Recurse -Force -Verbose -ErrorAction 'SilentlyContinue' | Remove-Item @CommonParams
+                    }
+                    catch [System.IO.IOException] {
+                        Write-Error "File in use: $($_.TargetObject)"
                     }
                     catch [System.UnauthorizedAccessException] {
                         Write-Error "Access denied for path: $($_.TargetObject)"

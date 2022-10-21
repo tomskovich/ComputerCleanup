@@ -156,7 +156,7 @@ function Invoke-ComputerCleanup {
 
         if ($UserTemp -eq $true) {
             $UserParams = @{
-                Days      = $Days
+                Days = $Days
             }
             $UserParams.TempFiles = $true
             if ($UserDownloads -eq $true) {
