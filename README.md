@@ -74,7 +74,7 @@ Generally, the only function/command you'll need is `Invoke-ComputerCleanup`. He
     Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -RecycleBin 
 ```
 
-Will do the following:
+#### Will:
 	- Run the Windows Disk Cleanup tool
 	- Remove temp files in User profiles that are older than 30 days old.
 	- Remove temp files in system that are older than 30 days old.
