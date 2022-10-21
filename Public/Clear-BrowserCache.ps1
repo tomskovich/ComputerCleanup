@@ -86,7 +86,7 @@ function Clear-BrowserCache {
             Recurse       = $true
             Force         = $true
             Verbose       = $true
-            ErrorAction   = 'Stop'
+            ErrorAction   = 'Continue'
             WarningAction = 'SilentlyContinue'
         }
     }
@@ -101,14 +101,11 @@ function Clear-BrowserCache {
         # Kill browser process(es)
         foreach ($Browser in $Browsers) {
             try {
-                Write-Verbose "Killing browser process(es)..."
+                Write-Verbose "Killing $Browser process(es)..."
                 Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process
             }
             catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
-                Write-Error "No running $($_.Exception.ProcessName) processes. Continuing..."
-            }
-            catch {
-                Write-Error $_.Exception.Message
+                Write-Error "No running $($_.Exception.ProcessName) processes."
             }
         }
 
@@ -116,11 +113,9 @@ function Clear-BrowserCache {
         ForEach ($Username In $Users) {
             ForEach ($Folder In $Folders) {
                 $FolderToClean = "$env:SYSTEMDRIVE\Users\$Username\$Folder"
-
                 If (Test-Path -Path $FolderToClean) {
                     try {
                         $ItemsToRemove = Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams
-
                         foreach ($Item in $ItemsToRemove) {
                             try {
                                 Remove-Item $Item @CommonParams
@@ -131,20 +126,11 @@ function Clear-BrowserCache {
                             catch [System.UnauthorizedAccessException] {
                                 Write-Error "Access denied for path: $($_.TargetObject)"
                             }
-                            catch {
-                                Write-Error $_.Exception.Message
-                            }
                         }
                     }
                     catch [System.UnauthorizedAccessException] {
                         Write-Error "Access denied for path: $($_.TargetObject)"
                     }
-                    catch {
-                        Write-Error $_.Exception.Message
-                    }
-                }
-                else {
-                    Write-Verbose "$env:SYSTEMDRIVE\Users\$Username\$Folder does not exist."
                 }
             }
             Write-Verbose "Removed browser cache files for $Username."
