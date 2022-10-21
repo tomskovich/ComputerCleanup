@@ -14,6 +14,9 @@ function Clear-TeamsCache {
     )
 
     begin {
+        # Verify if running as Administrator
+        Assert-RunAsAdministrator
+
         # Get disk space for comparison afterwards
         $Before = Get-DiskSpace
 
@@ -45,21 +48,7 @@ function Clear-TeamsCache {
         Write-Verbose "Starting Teams Cache cleanup process..."
         if ( -not ($Force)) {
             # Prompt for user verification before continuing
-            Write-Warning "This will stop all running Teams processes!"
-            $Confirmation = Read-Host -Prompt "Are you sure you want to continue? [Y/N]"
-            while (($Confirmation) -notmatch "[yY]") {
-                switch -regex ($Confirmation) {
-                    "[yY]" {
-                        continue
-                    }
-                    "[nN]" {
-                        throw "Script aborted by user input."
-                    }
-                    default {
-                        throw "Script aborted."
-                    }
-                }
-            }
+            Get-UserConfirmation -WarningMessage "This will stop all running Teams processes!"
         }
 
         # Kill Teams process(es)

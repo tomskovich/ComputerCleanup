@@ -10,30 +10,49 @@
 function Clear-BrowserCache {
     param(
         # Enabling this parameter will skip confirmation.
-        [Switch] $Force
+        [Switch] $Force,
+
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("All","Chrome","Edge","IE","Firefox")]
+        [Alias('Browser')]
+        [string[]] $Browsers = "All"
     )
 
     begin {
+        # Verify if running as Administrator
+        Assert-RunAsAdministrator
+
         # Get disk space for comparison afterwards
         $Before = Get-DiskSpace
 
         # Get all user folders, exclude administrators and default users
         $Users = Get-UserFolders
 
-        # Folders to clean up
-        $Folders = @(
-            # Edge
-            '\AppData\Local\Microsoft\Microsoft\Edge\User Data\Default\Cache',
-            # Internet Explorer
+        # Initialize empty array to add folders to
+        $Folders = @()
+
+        # Edge (Chromium)
+        $EdgeFolders = @(
+            '\AppData\Local\Microsoft\Microsoft\Edge\User Data\Default\Cache'
+        )
+
+        # Internet Explorer
+        $IEFolders = @(
             '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
             '\AppData\Local\Microsoft\Windows\WebCache',
             '\AppData\Local\Microsoft\Windows\INetCache',
-            '\AppData\Local\Microsoft\Internet Explorer\DOMStore',
-            # Google Chrome
+            '\AppData\Local\Microsoft\Internet Explorer\DOMStore'
+        )
+
+        # Google Chrome
+        $ChromeFolders = @(
             '\AppData\Local\Google\Chrome\User Data\Default\Cache',
             '\AppData\Local\Google\Chrome\User Data\Default\Cache2\entries',
-            '\AppData\Local\Google\Chrome\User Data\Default\Media Cache',
-            # Firefox
+            '\AppData\Local\Google\Chrome\User Data\Default\Media Cache'
+        )
+
+        # Firefox
+        $FireFoxFolders = @(
             '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache',
             '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache2\entries',
             '\AppData\Local\Mozilla\Firefox\Profiles\*.default\thumbnails',
@@ -41,12 +60,33 @@ function Clear-BrowserCache {
             '\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
         )
 
+        switch ($Browsers) {
+            { $_ -match 'All' } { 
+                # Add all folders
+                $Folders = $EdgeFolders + $IEFolders + $ChromeFolders + $FireFoxFolders
+                # Change variable value from "All" to list of all browsers
+                $Browsers = @("Chrome","Edge","IE","Firefox")
+            }
+            { $_ -match 'Edge' } { 
+                $Folders = $Folders + $EdgeFolders
+            }
+            { $_ -match 'IE' } { 
+                $Folders = $Folders + $IEFolders
+            }
+            { $_ -match 'Chrome' } {
+                $Folders = $Folders + $ChromeFolders
+            }
+            { $_ -match 'Firefox' } { 
+                $Folders = $Folders + $FireFoxFolders
+            }
+        }
+
         # Parameters for Get-ChildItem and Remove-Item
         $CommonParams = @{
             Recurse       = $true
             Force         = $true
             Verbose       = $true
-            ErrorAction   = 'SilentlyContinue'
+            ErrorAction   = 'Stop'
             WarningAction = 'SilentlyContinue'
         }
     }
@@ -55,45 +95,59 @@ function Clear-BrowserCache {
         Write-Verbose "Starting browser cache cleanup process..."
         if ( -not ($Force)) {
             # Prompt for user verification before continuing
-            Write-Warning "This will stop all running browser processes!"
-            $Confirmation = Read-Host -Prompt "Are you sure you want to continue? [Y/N]"
-            while (($Confirmation) -notmatch "[yY]") {
-                switch -regex ($Confirmation) {
-                    "[yY]" {
-                        continue
-                    }
-                    "[nN]" {
-                        throw "Script aborted by user input."
-                    }
-                    default {
-                        throw "Script aborted."
-                    }
-                }
-            }
+            Get-UserConfirmation -WarningMessage "This will stop all running Browser processes!"
         }
 
         # Kill browser process(es)
-        try {
-            Write-Verbose "Killing browser process(es)..."
-            Get-Process -ProcessName 'Chrome', 'Firefox', 'iexplore' -ErrorAction 'SilentlyContinue' | Stop-Process
-        }
-        catch {
-            Write-Error $_
+        foreach ($Browser in $Browsers) {
+            try {
+                Write-Verbose "Killing browser process(es)..."
+                Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process
+            }
+            catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
+                Write-Error "No running $($_.Exception.ProcessName) processes. Continuing..."
+            }
+            catch {
+                Write-Error $_.Exception.Message
+            }
         }
 
         # Start cleaning files
         ForEach ($Username In $Users) {
             ForEach ($Folder In $Folders) {
-                If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
+                $FolderToClean = "$env:SYSTEMDRIVE\Users\$Username\$Folder"
+
+                If (Test-Path -Path $FolderToClean) {
                     try {
-                        Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams | Remove-Item @CommonParams
-                        Write-Verbose "Removed browser cache files for $Username."
+                        $ItemsToRemove = Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams
+
+                        foreach ($Item in $ItemsToRemove) {
+                            try {
+                                Remove-Item $Item @CommonParams
+                            }
+                            catch [System.IO.IOException] {
+                                Write-Error "File in use: $($_.TargetObject)"
+                            }
+                            catch [System.UnauthorizedAccessException] {
+                                Write-Error "Access denied for path: $($_.TargetObject)"
+                            }
+                            catch {
+                                Write-Error $_.Exception.Message
+                            }
+                        }
+                    }
+                    catch [System.UnauthorizedAccessException] {
+                        Write-Error "Access denied for path: $($_.TargetObject)"
                     }
                     catch {
-                        Write-Error $_
+                        Write-Error $_.Exception.Message
                     }
                 }
+                else {
+                    Write-Verbose "$env:SYSTEMDRIVE\Users\$Username\$Folder does not exist."
+                }
             }
+            Write-Verbose "Removed browser cache files for $Username."
         }
     }
 
