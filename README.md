@@ -1,11 +1,15 @@
 ## Installation
 
 `IMPORTANT: This module is still a work in progress!`
+
 `Please use at your own risk.`
 
-You can install the ComputerCleanup module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ComputerCleanup/), or download it from my [GitHub](https://github.com/tomskovich/ComputerCleanup)
+This PowerShell module is for freeing up disk space on Windows computers.
+I frequently use this on some RDS servers, and my local machine.
 
-More information can be found on my (Blog)[https://tech-tom.com/posts/powershell-computercleanup-module/]
+You can install the ComputerCleanup module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ComputerCleanup/).
+
+More information can be found on my [Blog](https://tech-tom.com/posts/powershell-computercleanup-module/)
 
 ```powershell
 # One time setup
@@ -30,7 +34,7 @@ If you're not sure where your Modules folder is, open up a PowerShell prompt and
 
 ## Functions\Public
 
-- [Invoke-ComputerCleanup](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Invoke-ComputerCleanup.ps1) 
+- #### [Invoke-ComputerCleanup](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Invoke-ComputerCleanup.ps1) 
     - Main controller function to invoke one or multiple cleanup functions included in this module.
 - [Clear-BrowserCache](https://github.com/tomskovich/ComputerCleanup/blob/main/Public/Clear-BrowserCache.ps1)
 	- Removes browser cache files for all users.
@@ -51,7 +55,7 @@ If you're not sure where your Modules folder is, open up a PowerShell prompt and
 
 ## Functions\Private
 
-- [Assert-RunAsAdministrator](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Assert-RunAsAdministrator.ps1) 
+- #### [Assert-RunAsAdministrator](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Assert-RunAsAdministrator.ps1) 
     - Verifies if script/function is running with Administrator privileges.
 - [Get-DiskSpace](https://github.com/tomskovich/ComputerCleanup/blob/main/Private/Get-DiskSpace.ps1)
     - Gets available disk space. Used for reporting.
@@ -96,7 +100,7 @@ Therefore, I've added warnings for some parameters. Example:
 	- This parameter does NOT apply to the following options:
 		- `-BrowserCache`, `-TeamsCache`, `-SoftwareDistribution`, `-FontCache`
 
-#### CleanManager
+#### -CleanManager
 	- Runs the Windows Disk Cleanup tool with the following options enabled:
 		- Active Setup Temp Folders
 		- BranchCache
@@ -126,7 +130,7 @@ Therefore, I've added warnings for some parameters. Example:
 		- Windows Error Reporting System Queue Files
 		- Windows Upgrade Log Files
 
-#### UserTemp
+#### -UserTemp
 	- Removes temp files in User profiles that are older than $Days days old. Default locations:
 		- USERPROFILE\AppData\Local\Microsoft\Windows\WER
 		- USERPROFILE\AppData\Local\Microsoft\Windows\INetCache
@@ -135,29 +139,29 @@ Therefore, I've added warnings for some parameters. Example:
 		- USERPROFILE\AppData\Local\CrashDumps
 		- USERPROFILE\AppData\Local\Temp
 
-#### SystemTemp
+#### -SystemTemp
 	- Removes temp files in system that are older than $Days days old. Default locations:
 		- C:\Windows\Temp
 		- C:\Windows\Logs\CBS
 		- C:\Windows\Downloaded Program Files
 		- C:\ProgramData\Microsoft\Windows\WER
 
-#### SoftwareDistribution
+#### -SoftwareDistribution
 	- Cleans the "C:\Windows\SoftwareDistribution\Downloads" folder.
 
-#### FontCache
+#### -FontCache
 	- Clears user font cache files located in "C:\Windows\ServiceProfiles\LocalService\AppData\Local"
 
-#### BrowserCache 
+#### -BrowserCache 
 	- Clears browser cache files for all users.
 	- Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
 	- WARNING: This will stop ALL running browser processes. Running outside of working hours is advised.
 
-#### TeamsCache
+#### -TeamsCache
 	- Clears Microsoft Teams cache files for all users.
     - WARNING: This will stop ALL running Teams processes. Running outside of working hours is advised.
 
-#### RecycleBin
+#### -RecycleBin
 	- Clears Recycle Bin.
 		- Only remove files/folders that are older than $Days old. 
 		- This is based on both file CreationTime AND LastWriteTime.
