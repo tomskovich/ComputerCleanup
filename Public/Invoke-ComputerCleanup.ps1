@@ -88,10 +88,6 @@ function Invoke-ComputerCleanup {
         $script:CleanupReport = [ordered]@{}
         $ParamReport          = [ordered]@{}
         $RiskyParamReport     = [ordered]@{}
-
-        if (! ($Days)) {
-            
-        }
     }
 
     process {
@@ -145,20 +141,7 @@ function Invoke-ComputerCleanup {
         }
 
         # Prompt for user verification before continuing
-        $Confirmation = Read-Host -Prompt "Are you sure you want to run the cleanup with above settings? [Y/N]"
-        while (($Confirmation) -notmatch "[yY]") {
-            switch -regex ($Confirmation) {
-                "[yY]" {
-                    continue
-                }
-                "[nN]" {
-                    throw "Script aborted by user input."
-                }
-                default {
-                    throw "Script aborted by user input."
-                }
-            }
-        }
+        Get-UserConfirmation -PromptMessage "Are you sure you want to run the cleanup with above settings? [Y/N]"
 
         if ($CleanManager -eq $true) {
             try {

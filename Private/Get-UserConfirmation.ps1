@@ -9,7 +9,6 @@
 function Get-UserConfirmation {
     [CmdletBinding()]
     param(
-        [ValidateNotNullOrEmpty()]
         [string] $WarningMessage,
 
         [ValidateNotNullOrEmpty()]
