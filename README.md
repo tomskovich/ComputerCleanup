@@ -16,10 +16,10 @@ More information can be found on my [Blog](https://tech-tom.com/posts/powershell
 ```powershell
 # One time setup
     Install-Module ComputerCleanup -AllowClobber -Force 
-    #Force and AllowClobber aren't necessary, but they do skip errors in case some appear.
+    # -Force and -AllowClobber aren't necessary, but they do skip errors in case some appear.
 
 # Import the module.
-    Import-Module ComputerCleanup
+    Import-Module ComputerCleanup -Force
 
 # Get commands in the module
     Get-Command -Module ComputerCleanup
