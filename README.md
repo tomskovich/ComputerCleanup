@@ -1,14 +1,13 @@
 # ComputerCleanup
 
-`IMPORTANT: This module is still a work in progress!`
+`:warning: This module is still a work in progress!`
 
-`Please use at your own risk.`
+`:warning: Please use at your own risk.`
 
 This PowerShell module is for freeing up disk space on Windows computers.
 I frequently use this on some RDS servers, and my local machine.
 
 You can install the ComputerCleanup module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ComputerCleanup/).
-
 More information can be found on my [Blog](https://tech-tom.com/posts/powershell-computercleanup-module/)
 
 ## Installation
@@ -33,15 +32,15 @@ Update-Module -Name ComputerCleanup
 
 To install the module manually, or if you are using an earlier version of PowerShell that doesn't support Install-Module, simply download the module from GitHub, and copy the ComputerCleanup folder into your Modules folder. 
 
-If you're not sure where your Modules folder is, open up a PowerShell prompt and type: `$env:PSModulePath`.
+If you're not sure where your Modules folder is, open up a PowerShell prompt and enter: `$env:PSModulePath`
 
-### Examples/Usage
+## Examples/Usage
 
 Generally, the only function/command you'll need is `Invoke-ComputerCleanup`.
 
 I'll give two recommended parameter sets. One for running on a live/in-use environment, and one for outside of working hours.
 
-#### LIVE environment:
+### LIVE environment:
 ``` powershell
     Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -RecycleBin 
 ```
@@ -52,8 +51,8 @@ I'll give two recommended parameter sets. One for running on a live/in-use envir
 	- Cleans up the "C:\Windows\SoftwareDistribution\Download" folder.
 	- Clears the Windows Recycle Bin
 ```
-#### Outside of working hours:
-- :warning: This parameter set will close running processes! Use with caution.
+### Outside of working hours:
+`:warning: This parameter set will close running processes! Use with caution.`
 - You could use this as a weekly scheduled task.
 ``` powershell
     Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -BrowserCache -TeamsCache -FontCache -RecycleBin 
@@ -81,7 +80,7 @@ Therefore, I've added warnings for some parameters. Example:
 ```
 ![paramwarnings](https://tech-tom.com/paramwarnings.png#center)
 
-### All parameters for function "Invoke-ComputerCleanup"
+## Parameters for function: "Invoke-ComputerCleanup"
 
 #### -Days (Default: 30)
 	- Only remove files/folders that are older than $Days old. 
