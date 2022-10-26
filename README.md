@@ -146,19 +146,14 @@ Therefore, I've added warnings for some parameters. Example:
 #### -BrowserCache 
 	- Clears browser cache files for all users.
 	- Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
-	- WARNING: This will stop ALL running browser processes. Running outside of working hours is advised.
+	- :warning: This will stop ALL running browser processes. Running outside of working hours is advised.
 
 #### -TeamsCache
 	- Clears Microsoft Teams cache files for all users.
-    - WARNING: This will stop ALL running Teams processes. Running outside of working hours is advised.
+    - :warning: This will stop ALL running Teams processes. Running outside of working hours is advised.
 
 #### -RecycleBin
 	- Clears Recycle Bin.
-		- Only remove files/folders that are older than $Days old. 
-		- This is based on both file CreationTime AND LastWriteTime.
-	- This parameter does NOT apply to the following options:
-		- -BrowserCache, -TeamsCache, -SoftwareDistribution, -FontCache
-
 
 ## Functions\Public
 
