@@ -86,7 +86,10 @@ Therefore, I've added warnings for some parameters. Example:
 	- Only remove files/folders that are older than $Days old. 
 		- This is based on both file CreationTime AND LastWriteTime.
 	- This parameter does NOT apply to the following options:
-		- `-BrowserCache`, `-TeamsCache`, `-SoftwareDistribution`, `-FontCache`
+		-BrowserCache
+		-TeamsCache
+		-SoftwareDistribution
+		-FontCache
 
 #### -CleanManager
 	- Runs the Windows Disk Cleanup tool with the following options enabled:
