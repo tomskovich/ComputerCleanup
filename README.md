@@ -15,7 +15,6 @@ More information can be found on my [Blog](https://tech-tom.com/posts/powershell
 ```powershell
 # One time setup
 Install-Module ComputerCleanup -AllowClobber -Force 
-# -Force and -AllowClobber aren't necessary, but they do skip errors in case some appear.
 
 # If you get errors requesting the PSGallery and/or updating NuGet, try executing the following command before trying again:
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
