@@ -1,8 +1,8 @@
 # ComputerCleanup
 
-:warning: `This module is still a work in progress!`
+:warning: `This module is still a work in progress and could be destructive for production environments.`
 
-:warning: `Please use at your own risk.`
+:warning: `Please use at your own risk!`
 
 This PowerShell module is for freeing up disk space on Windows computers.
 You could use this on RDS servers, or your own local machine.
