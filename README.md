@@ -72,7 +72,7 @@ You'll be prompted for confirmation at the beginning, and there will be a report
 ![Invoke-ComputerCleanup](https://tech-tom.com/computercleanup_example1_start.png#center)
 ![Invoke-ComputerCleanup](https://tech-tom.com/computercleanup_example1_finish.png#center)
 
-Some parameters will stop some processes, which can be impactful in live environments.
+Some parameters will kill multiple processes, which can be impactful in live environments.
 Therefore, I've added warnings for some parameters. Example:
 
 ``` powershell
