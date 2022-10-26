@@ -1,8 +1,8 @@
 # ComputerCleanup
 
-`:warning: This module is still a work in progress!`
+:warning: `This module is still a work in progress!`
 
-`:warning: Please use at your own risk.`
+:warning: `Please use at your own risk.`
 
 This PowerShell module is for freeing up disk space on Windows computers.
 I frequently use this on some RDS servers, and my local machine.
@@ -52,7 +52,7 @@ I'll give two recommended parameter sets. One for running on a live/in-use envir
 	- Clears the Windows Recycle Bin
 ```
 ### Outside of working hours:
-`:warning: This parameter set will close running processes! Use with caution.`
+:warning: `This parameter set will close running processes! Use with caution.`
 - You could use this as a weekly scheduled task.
 ``` powershell
     Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -BrowserCache -TeamsCache -FontCache -RecycleBin 
