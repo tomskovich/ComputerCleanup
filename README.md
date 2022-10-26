@@ -5,7 +5,7 @@
 :warning: `Please use at your own risk.`
 
 This PowerShell module is for freeing up disk space on Windows computers.
-I frequently use this on some RDS servers, and my local machine.
+You could use this on RDS servers, or your own local machine.
 
 You can install the ComputerCleanup module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/ComputerCleanup/).
 More information can be found on my [Blog](https://tech-tom.com/posts/powershell-computercleanup-module/)
