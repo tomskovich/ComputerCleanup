@@ -133,7 +133,7 @@ function Invoke-ComputerCleanup {
             Write-Output "=== SCRIPT OPTIONS SUMMARY:" 
             $ParamReport.keys | Select-Object @{l='Parameter';e={$_}},@{l='Description';e={$ParamReport.$_}} | Format-Table
             # Report risky parameters
-            if ($RiskyParamReport.Count -gt 0) {
+            if (($RiskyParamReport.Count -gt 0) -and (-not ($Force)) ) {
                 Write-Warning "Some commands are dangerous to execute on a live environment. Please review:" 
                 $RiskyParamReport.keys | Select-Object @{l='Parameter';e={$_}},@{l='Warning';e={$RiskyParamReport.$_}} | Format-Table
             }
