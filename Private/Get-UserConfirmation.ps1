@@ -18,10 +18,14 @@ function Get-UserConfirmation {
         [ValidateNotNullOrEmpty()]
         [string] $ExitMessage = "Script aborted by user input."
     )
-    
+
     process {
-        Write-Warning $WarningMessage
+        if ($WarningMessage) {
+            Write-Warning $WarningMessage
+        }
+
         $Confirmation = Read-Host -Prompt $PromptMessage
+
         while (($Confirmation) -notmatch "[yY]") {
             switch -regex ($Confirmation) {
                 "[yY]" {

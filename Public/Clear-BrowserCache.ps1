@@ -40,7 +40,8 @@ function Clear-BrowserCache {
         $IEFolders = @(
             '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
             '\AppData\Local\Microsoft\Windows\WebCache',
-            '\AppData\Local\Microsoft\Windows\INetCache',
+            '\AppData\Local\Microsoft\Windows\INetCache\Content.IE5',
+            '\AppData\Local\Microsoft\Windows\INetCache\Low\Content.IE5',
             '\AppData\Local\Microsoft\Internet Explorer\DOMStore'
         )
 

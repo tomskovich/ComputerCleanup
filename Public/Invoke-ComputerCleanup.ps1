@@ -140,8 +140,11 @@ function Invoke-ComputerCleanup {
             Write-Output ''.PadLeft(76, '-')
         }
 
-        # Prompt for user verification before continuing
-        Get-UserConfirmation -PromptMessage "Are you sure you want to run the cleanup with above settings? [Y/N]"
+        if ( -not ($Force)) {
+            # Prompt for user verification before continuing
+            Get-UserConfirmation -PromptMessage "Are you sure you want to run the cleanup with above settings? [Y/N]"
+        }
+
 
         if ($CleanManager -eq $true) {
             try {
