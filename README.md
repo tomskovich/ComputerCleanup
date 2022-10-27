@@ -44,30 +44,30 @@ I'll give two recommended parameter sets. One for running on a live/in-use envir
 
 ### LIVE environment:
 ``` powershell
-    Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -RecycleBin 
+Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -RecycleBin 
 ```
 ```txt
-	- Runs the Windows Disk Cleanup tool.
-	- Removes temp files in User profiles that are older than 30 days old.
-	- Removes temp files in System that are older than 30 days old.
-	- Cleans up the "C:\Windows\SoftwareDistribution\Download" folder.
-	- Clears the Windows Recycle Bin
+- Runs the Windows Disk Cleanup tool.
+- Removes temp files in User profiles that are older than 30 days old.
+- Removes temp files in System that are older than 30 days old.
+- Cleans up the "C:\Windows\SoftwareDistribution\Download" folder.
+- Clears the Windows Recycle Bin
 ```
 ### Outside of working hours:
 :warning: `This parameter set will close running processes! Use with caution.`
 - You could use this as a weekly scheduled task.
 ``` powershell
-    Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -BrowserCache -TeamsCache -FontCache -RecycleBin 
+Invoke-ComputerCleanup -Days 30 -UserTemp -SystemTemp -CleanManager -SoftwareDistribution -BrowserCache -TeamsCache -FontCache -RecycleBin 
 ```
 ```txt
-	- Runs the Windows Disk Cleanup tool.
-	- Removes temp files in User profiles that are older than 30 days old.
-	- Removes temp files in System that are older than 30 days old.
-	- Cleans up the "C:\Windows\SoftwareDistribution\Download" folder.
-	- Clears cache for all browsers
-	- Clears Microsoft Teams Cache
-	- Clears Windows Font Cache
-	- Clears the Windows Recycle Bin
+- Runs the Windows Disk Cleanup tool.
+- Removes temp files in User profiles that are older than 30 days old.
+- Removes temp files in System that are older than 30 days old.
+- Cleans up the "C:\Windows\SoftwareDistribution\Download" folder.
+- Clears cache for all browsers
+- Clears Microsoft Teams Cache
+- Clears Windows Font Cache
+- Clears the Windows Recycle Bin
 ```
 You'll be prompted for confirmation at the beginning, and there will be a report at the end.
 
@@ -78,7 +78,7 @@ Some parameters will kill multiple processes, which can be impactful in live env
 Therefore, I've added warnings for some parameters. Example:
 
 ``` powershell
-    Invoke-ComputerCleanup -Days 30 -BrowserCache -TeamsCache -UserDownloads
+Invoke-ComputerCleanup -Days 30 -BrowserCache -TeamsCache -UserDownloads
 ```
 
 :information_source: You can use the `-Force` parameter to skip all confirmation prompts.
