@@ -13,7 +13,7 @@ function Clear-BrowserCache {
         [Switch] $Force,
 
         [ValidateNotNullOrEmpty()]
-        [ValidateSet("All","Chrome","Edge","IE","Firefox")]
+        [ValidateSet("All", "Chrome", "Edge", "IE", "Firefox")]
         [Alias('Browser')]
         [string[]] $Browsers = "All"
     )

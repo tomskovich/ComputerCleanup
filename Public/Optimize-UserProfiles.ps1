@@ -68,7 +68,6 @@ function Optimize-UserProfiles {
                 # Folders to clean up
                 $TempFolders = @(
                     '\AppData\Local\Microsoft\Windows\WER',
-                    '\AppData\Local\Microsoft\Windows\INetCache',
                     '\AppData\Local\Microsoft\Internet Explorer\Recovery',
                     '\AppData\Local\Microsoft\Terminal Server Client\Cache',
                     '\AppData\Local\CrashDumps',
