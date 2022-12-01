@@ -8,8 +8,10 @@
     Website:  https://ucsystems.nl / https://tech-tom.com
 #>
 function Clear-BrowserCache {
+    [CmdletBinding(ConfirmImpact='Medium', SupportsShouldProcess = $true)]
     param(
         # Enabling this parameter will skip confirmation.
+        [Parameter(ValuefromPipeline = $True)]
         [Switch] $Force,
 
         [ValidateNotNullOrEmpty()]
@@ -82,20 +84,21 @@ function Clear-BrowserCache {
             }
         }
 
-        # Parameters for Get-ChildItem and Remove-Item
+        # Common parameters for Get-ChildItem and Remove-Item
         $CommonParams = @{
             Recurse       = $true
             Force         = $true
             Verbose       = $true
-            ErrorAction   = 'Continue'
+            ErrorAction   = 'Stop'
             WarningAction = 'SilentlyContinue'
         }
     }
 
     process {
         Write-Verbose "Starting browser cache cleanup process..."
+
+        # Prompt for user verification before continuing
         if ( -not ($Force)) {
-            # Prompt for user verification before continuing
             Get-UserConfirmation -WarningMessage "This will stop all running Browser processes!"
         }
 
@@ -103,10 +106,13 @@ function Clear-BrowserCache {
         foreach ($Browser in $Browsers) {
             try {
                 Write-Verbose "Killing $Browser process(es)..."
-                Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process
+                Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process -Force -Confirm:$false
             }
             catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
                 Write-Information "No running $($_.Exception.ProcessName) processes."
+            }
+            catch {
+                Write-Error "$($Browser): $($_.Exception.Message)"
             }
         }
 
@@ -116,13 +122,16 @@ function Clear-BrowserCache {
                 $FolderToClean = "$env:SYSTEMDRIVE\Users\$Username\$Folder"
                 If (Test-Path -Path $FolderToClean) {
                     try {
-                        Get-ChildItem -Path $FolderToClean -Recurse -Force -Verbose -ErrorAction 'SilentlyContinue' | Remove-Item @CommonParams
+                        Get-ChildItem -Path $FolderToClean -Recurse -Force -Verbose -ErrorAction 'Stop' | Remove-Item @CommonParams
                     }
                     catch [System.IO.IOException] {
                         Write-Error "File in use: $($_.TargetObject)"
                     }
                     catch [System.UnauthorizedAccessException] {
                         Write-Error "Access denied for path: $($_.TargetObject)"
+                    }
+                    catch {
+                        Write-Error "$($Username): $($_.Exception.Message)"
                     }
                 }
             }

@@ -145,7 +145,6 @@ function Invoke-ComputerCleanup {
             Get-UserConfirmation -PromptMessage "Are you sure you want to run the cleanup with above settings? [Y/N]"
         }
 
-
         if ($CleanManager -eq $true) {
             try {
                 Write-Output '=== STARTED : Windows Disk Cleanup'
@@ -204,9 +203,13 @@ function Invoke-ComputerCleanup {
         }
 
         if ($BrowserCache -eq $true) {
+            $BrowserParams = @{}
+            if ($Force -eq $true) {
+                $BrowserParams.Force = $true
+            }
             try {
                 Write-Output '=== STARTED : Cleaning Browser Cache'
-                Clear-BrowserCache
+                Clear-BrowserCache @BrowserParams
                 Write-Output '=== FINISHED: Cleaning Browser Cache'
             }
             catch {
@@ -256,15 +259,15 @@ function Invoke-ComputerCleanup {
         Write-Output '=== SCRIPT FINISHED'
         Write-Output ''.PadLeft(76, '-')
         Write-Output '=== PER-SECTION BREAKDOWN'
-        $script:CleanupReport.TOTAL = $TotalCleaned
+        #$script:CleanupReport.TOTAL = $TotalCleaned
         $script:CleanupReport
         Write-Output ''.PadLeft(76, '-')
+        Write-Output "TOTAL cleaned   : $TotalCleaned"
         Write-Output ''.PadLeft(76, '-')
         Write-Output "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)"
         Write-Output "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes"
         Write-Output "Free space BEFORE     : $(($Before.FreeSpace).ToString()) GB"
         Write-Output "Free space AFTER      : $(($After.FreeSpace).ToString()) GB"
-        Write-Output "Total space cleaned   : $TotalCleaned"
         Write-Output ''.PadLeft(76, '-')
 
         # Stop logging

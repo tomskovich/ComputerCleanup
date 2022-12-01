@@ -83,15 +83,15 @@ function Invoke-CleanManager {
             'GameNewsFiles',
             'GameStatisticsFiles',
             'GameUpdateFiles',
-            'Memory Dump Files',
+            #'Memory Dump Files',
             'Offline Pages Files',
             'Old ChkDsk Files',
             'Previous Installations',
             #'Recycle Bin',
             'Service Pack Cleanup',
             'Setup Log Files',
-            'System error memory dump files',
-            'System error minidump files',
+            #'System error memory dump files',
+            #'System error minidump files',
             'Temporary Files',
             'Temporary Setup Files',
             #'Temporary Sync Files',
@@ -110,7 +110,7 @@ function Invoke-CleanManager {
     }
 
     process {
-        # Clears current registry entries
+        # Clear current registry entries
         Write-Verbose 'Clearing current CleanMgr.exe automation settings...'
         $RegistryParams = @{
             Path        = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\*'
@@ -119,7 +119,7 @@ function Invoke-CleanManager {
         }
         [void] (Get-ItemProperty @RegistryParams | Remove-ItemProperty -Name 'StateFlags0001' -ErrorAction SilentlyContinue)
 
-        # Adds registry entries according to $Sections defined above
+        # Add registry entries according to $Sections defined above
         Write-Verbose 'Adding enabled disk cleanup sections'
         foreach ($key in $Sections) {
             $newItemParams = @{
@@ -132,16 +132,11 @@ function Invoke-CleanManager {
             [void] (New-ItemProperty @newItemParams)
         }
 
-        Write-Verbose 'Running CleanMgr.exe...'
         try {
+            Write-Verbose 'Running CleanMgr.exe...'
             Start-Process -FilePath "$env:systemroot\system32\Cleanmgr.exe" -ArgumentList '/sagerun:1' -NoNewWindow -Wait
-        }
-        catch {
-            Write-Error $_
-        }
 
-        Write-Verbose 'Waiting for CleanMgr and DismHost processes.'
-        try {
+            Write-Verbose 'Waiting for CleanMgr and DismHost processes.'
             Get-Process -Name cleanmgr, dismhost -ErrorAction SilentlyContinue | Wait-Process
         }
         catch {

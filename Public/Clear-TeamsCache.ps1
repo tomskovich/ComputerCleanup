@@ -10,6 +10,7 @@ function Clear-TeamsCache {
     [CmdletBinding(ConfirmImpact='Medium', SupportsShouldProcess = $true)]
     param(
         # Enabling this parameter will skip confirmation.
+        [Parameter(ValuefromPipeline = $True)]
         [Switch] $Force
     )
 
@@ -46,33 +47,37 @@ function Clear-TeamsCache {
 
     process {
         Write-Verbose "Starting Teams Cache cleanup process..."
+
+        # Prompt for user verification before continuing
         if ( -not ($Force)) {
-            # Prompt for user verification before continuing
             Get-UserConfirmation -WarningMessage "This will stop all running Teams processes!"
         }
 
         # Kill Teams process(es)
         try {
             Write-Verbose "Killing Teams process(es)..."
-            Get-Process -ProcessName 'Teams' -ErrorAction 'SilentlyContinue' | Stop-Process
+            Get-Process -ProcessName 'Teams' -ErrorAction 'Stop' | Stop-Process -Force -Confirm:$false
+        }
+        catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
+            Write-Information "No running $($_.Exception.ProcessName) processes."
         }
         catch {
-            Write-Error $_
+            Write-Error "$($_.Exception.Message)"
         }
 
         # Start cleaning files
-        ForEach ($Username In $Users) {
-            ForEach ($Folder In $Folders) {
-                If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder") {
+        ForEach ($UserName In $Users) {
+            ForEach ($FolderName In $Folders) {
+                If (Test-Path -Path "$env:SYSTEMDRIVE\Users\$UserName\$FolderName") {
                     try {
-                        Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$Username\$Folder" @CommonParams | Remove-Item @CommonParams
+                        Get-ChildItem -Path "$env:SYSTEMDRIVE\Users\$UserName\$FolderName" @CommonParams | Remove-Item @CommonParams
                     }
                     catch {
                         Write-Error $_
                     }
                 }
             }
-            Write-Verbose "Removed Teams Cache files for $Username."
+            Write-Verbose "Removed Teams Cache files for $UserName."
         }
     }
 
