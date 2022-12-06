@@ -32,35 +32,38 @@ function Clear-BrowserCache {
 
         # Initialize empty array to add folders to
         $Folders = @()
+        $BrowserProcesses = @()
 
         # Edge (Chromium)
         $EdgeFolders = @(
-            '\AppData\Local\Microsoft\Microsoft\Edge\User Data\Default\Cache'
+            'AppData\Local\Microsoft\Edge\User Data\Default\Cache',
+            'AppData\Local\Microsoft\Edge\User Data\Default\Cache\Cache_Data'
         )
 
         # Internet Explorer
         $IEFolders = @(
-            '\AppData\Local\Microsoft\Windows\Temporary Internet Files',
-            '\AppData\Local\Microsoft\Windows\WebCache',
-            '\AppData\Local\Microsoft\Windows\INetCache\Content.IE5',
-            '\AppData\Local\Microsoft\Windows\INetCache\Low\Content.IE5',
-            '\AppData\Local\Microsoft\Internet Explorer\DOMStore'
+            'AppData\Local\Microsoft\Windows\Temporary Internet Files',
+            'AppData\Local\Microsoft\Windows\WebCache',
+            'AppData\Local\Microsoft\Windows\INetCache\Content.IE5',
+            'AppData\Local\Microsoft\Windows\INetCache\Low\Content.IE5',
+            'AppData\Local\Microsoft\Internet Explorer\DOMStore'
         )
 
         # Google Chrome
         $ChromeFolders = @(
-            '\AppData\Local\Google\Chrome\User Data\Default\Cache',
-            '\AppData\Local\Google\Chrome\User Data\Default\Cache2\entries',
-            '\AppData\Local\Google\Chrome\User Data\Default\Media Cache'
+            'AppData\Local\Google\Chrome\User Data\Default\Cache',
+            'AppData\Local\Google\Chrome\User Data\Default\Cache2\entries',
+            'AppData\Local\Google\Chrome\User Data\Default\Media Cache',
+            'AppData\Local\Google\Chrome\User Data\Default\Code Cache'
         )
 
         # Firefox
         $FireFoxFolders = @(
-            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache',
-            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\cache2\entries',
-            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\thumbnails',
-            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\webappsstore.sqlite',
-            '\AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
+            'AppData\Local\Mozilla\Firefox\Profiles\*.default\cache',
+            'AppData\Local\Mozilla\Firefox\Profiles\*.default\cache2\entries',
+            'AppData\Local\Mozilla\Firefox\Profiles\*.default\thumbnails',
+            'AppData\Local\Mozilla\Firefox\Profiles\*.default\webappsstore.sqlite',
+            'AppData\Local\Mozilla\Firefox\Profiles\*.default\chromeappsstore.sqlite'
         )
 
         switch ($Browsers) {
@@ -69,28 +72,24 @@ function Clear-BrowserCache {
                 $Folders = $EdgeFolders + $IEFolders + $ChromeFolders + $FireFoxFolders
                 # Change variable value from "All" to list of all browsers
                 $Browsers = @("Chrome","Edge","IE","Firefox")
+                $BrowserProcesses = @('msedge', 'iexplore', 'chrome', 'firefox')
             }
             { $_ -match 'Edge' } { 
                 $Folders = $Folders + $EdgeFolders
+                $BrowserProcesses = $BrowserProcesses + 'msedge'
             }
             { $_ -match 'IE' } { 
                 $Folders = $Folders + $IEFolders
+                $BrowserProcesses = $BrowserProcesses + 'iexplore'
             }
             { $_ -match 'Chrome' } {
                 $Folders = $Folders + $ChromeFolders
+                $BrowserProcesses = $BrowserProcesses + 'chrome'
             }
             { $_ -match 'Firefox' } { 
                 $Folders = $Folders + $FireFoxFolders
+                $BrowserProcesses = $BrowserProcesses + 'firefox'
             }
-        }
-
-        # Common parameters for Get-ChildItem and Remove-Item
-        $CommonParams = @{
-            Recurse       = $true
-            Force         = $true
-            Verbose       = $true
-            ErrorAction   = 'Stop'
-            WarningAction = 'SilentlyContinue'
         }
     }
 
@@ -103,7 +102,7 @@ function Clear-BrowserCache {
         }
 
         # Kill browser process(es)
-        foreach ($Browser in $Browsers) {
+        foreach ($Browser in $BrowserProcesses) {
             try {
                 Write-Verbose "Killing $Browser process(es)..."
                 Get-Process -ProcessName $Browser -ErrorAction 'Stop' | Stop-Process -Force -Confirm:$false
@@ -118,11 +117,12 @@ function Clear-BrowserCache {
 
         # Start cleaning files
         ForEach ($Username In $Users) {
-            ForEach ($Folder In $Folders) {
+            $FilesToClean = ForEach ($Folder In $Folders) {
                 $FolderToClean = "$env:SYSTEMDRIVE\Users\$Username\$Folder"
                 If (Test-Path -Path $FolderToClean) {
+                    Write-Host "Cleaning $($FolderToClean)"
                     try {
-                        Get-ChildItem -Path $FolderToClean -Recurse -Force -Verbose -ErrorAction 'Stop' | Remove-Item @CommonParams
+                        Get-ChildItem -Path $FolderToClean -File -Recurse -Force -Verbose -ErrorAction 'SilentlyContinue'
                     }
                     catch [System.IO.IOException] {
                         Write-Error "File in use: $($_.TargetObject)"
@@ -135,7 +135,8 @@ function Clear-BrowserCache {
                     }
                 }
             }
-            Write-Verbose "Removed browser cache files for $Username."
+            $FilesToClean | Remove-Item -Recurse -Force -Verbose -ErrorAction 'SilentlyContinue'
+            Write-Information "Removed browser cache files for $Username."
         }
     }
 
@@ -153,3 +154,4 @@ function Clear-BrowserCache {
         }
     }
 }
+

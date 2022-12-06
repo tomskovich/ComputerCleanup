@@ -42,33 +42,34 @@ function Invoke-ComputerCleanup {
         # Clears browser cache files for all users.
         # Browsers: Microsoft Edge, Internet Explorer, Google Chrome and Firefox.
         # WARNING: This will stop ALL running browser processes. Running outside of working hours is advised.
-        [Parameter(ParameterSetName = 'User')]
         [switch] $BrowserCache,
 
         # Clears Microsoft Teams cache files for all users.
         # WARNING: This will stop ALL running Teams processes. Running outside of working hours is advised.
-        [Parameter(ParameterSetName = 'User')]
         [switch] $TeamsCache,
 
         # Enabling this parameter will skip confirmation for parameters -Teams and -BrowserCache.
         # WARNING: Please use with caution!
-        [Parameter(ParameterSetName = 'User')]
         [switch] $Force,
 
         # Removes common temporary files and folders older than $Days days old from user profiles.
-        [Parameter(ParameterSetName = 'User')]
         [switch] $UserTemp,
 
         # Removes .ZIP, .RAR and .7z (default) files larger than (default) 500MB and more than $Days days old from users' downloads folder.
-        [Parameter(ParameterSetName = 'User')]
         [switch] $UserDownloads,
 
         # List of filetypes to remove when parameter "-UserDownloads" is used. Default: .ZIP, .RAR, .7z, .ISO.
-        [Parameter(ParameterSetName = 'User')]
         [array] $ArchiveTypes = @('zip', 'rar', '7z', 'iso'),
 
         # Clears the Windows Recycle Bin
-        [switch] $RecycleBin
+        [switch] $RecycleBin,
+
+        # E-mail report settings
+        [switch] $MailReport,
+        [string] $SmtpServer,
+        [int]    $SmtpPort,
+        [string] $FromAddress,
+        [string] $ToAddress
     )
 
     begin {
@@ -91,7 +92,7 @@ function Invoke-ComputerCleanup {
     }
 
     process {
-        # Report parameter information to console
+        # Report (cleanup) parameter information to console
         switch ($PSBoundParameters.Keys) {
             'Days' {
                 $ParamReport.Days = "Files older than $Days days will be removed. This DOES NOT apply to options 'Teams'!"
@@ -109,10 +110,6 @@ function Invoke-ComputerCleanup {
                 $ParamReport.UserDownloads = "Removes .ZIP, .RAR and .7z (default) files larger than (default) 500MB and older than $Days days old from users' downloads folder."
                 $RiskyParamReport.UserDownloads = "This will remove users' personal files! Please make sure they are informed."
             }
-            'BrowserCache' {
-                $ParamReport.BrowserCache      = "Clears cache files for all browsers."
-                $RiskyParamReport.BrowserCache = "This will stop ALL running browser processes. Running outside of working hours is advised."
-            }
             'SoftwareDistribution' {
                 $ParamReport.SoftwareDistribution = "Cleans the 'C:\Windows\SoftwareDistribution\Download' folder."
             }
@@ -122,6 +119,10 @@ function Invoke-ComputerCleanup {
             'TeamsCache' {
                 $ParamReport.TeamsCache      = "Clears Microsoft Teams cache files for all users."
                 $RiskyParamReport.TeamsCache = "This will stop ALL running Teams processes. Running outside of working hours is advised."
+            }
+            'BrowserCache' {
+                $ParamReport.BrowserCache      = "Clears cache files for all browsers."
+                $RiskyParamReport.BrowserCache = "This will stop ALL running browser processes. Running outside of working hours is advised."
             }
             'RecycleBin' {
                 $ParamReport.RecycleBin = "Clears the Windows Recycle Bin"
@@ -202,21 +203,6 @@ function Invoke-ComputerCleanup {
             Write-Output '=== FINISHED: Cleaning Cleaning Font Cache'
         }
 
-        if ($BrowserCache -eq $true) {
-            $BrowserParams = @{}
-            if ($Force -eq $true) {
-                $BrowserParams.Force = $true
-            }
-            try {
-                Write-Output '=== STARTED : Cleaning Browser Cache'
-                Clear-BrowserCache @BrowserParams
-                Write-Output '=== FINISHED: Cleaning Browser Cache'
-            }
-            catch {
-                Write-Error $_
-            }
-        }
-
         if ($TeamsCache-eq $true) {
             $TeamsParams = @{}
             if ($Force -eq $true) {
@@ -226,6 +212,21 @@ function Invoke-ComputerCleanup {
                 Write-Output '=== STARTED : Cleaning Teams cache'
                 Clear-TeamsCache @TeamsParams
                 Write-Output '=== FINISHED: Cleaning Teams cache'
+            }
+            catch {
+                Write-Error $_
+            }
+        }
+
+        if ($BrowserCache -eq $true) {
+            $BrowserParams = @{}
+            if ($Force -eq $true) {
+                $BrowserParams.Force = $true
+            }
+            try {
+                Write-Output '=== STARTED : Cleaning Browser Cache'
+                Clear-BrowserCache @BrowserParams
+                Write-Output '=== FINISHED: Cleaning Browser Cache'
             }
             catch {
                 Write-Error $_
@@ -242,9 +243,8 @@ function Invoke-ComputerCleanup {
                 Write-Error $_
             }
         }
-    } # end Process
 
-    end {
+        #### REPORTING / FINALIZATION
         # Get time again, calculate total run time
         $EndTime      = (Get-Date)
         $TotalSeconds = [int]$(($EndTime - $StartTime).TotalSeconds)
@@ -254,15 +254,14 @@ function Invoke-ComputerCleanup {
         $After        = Get-DiskSpace
         $TotalCleaned = "$(($After.FreeSpace - $Before.FreeSpace).ToString('00.00')) GB"
 
-        # Report
+        # Reporting
         Write-Output ''.PadLeft(76, '-')
         Write-Output '=== SCRIPT FINISHED'
         Write-Output ''.PadLeft(76, '-')
         Write-Output '=== PER-SECTION BREAKDOWN'
-        #$script:CleanupReport.TOTAL = $TotalCleaned
         $script:CleanupReport
         Write-Output ''.PadLeft(76, '-')
-        Write-Output "TOTAL cleaned   : $TotalCleaned"
+        Write-Output "TOTAL cleaned         : $TotalCleaned"
         Write-Output ''.PadLeft(76, '-')
         Write-Output "Current Time          : $(Get-Date | Select-Object -ExpandProperty DateTime)"
         Write-Output "Elapsed Time          : $TotalSeconds seconds / $TotalMinutes minutes"
@@ -270,6 +269,33 @@ function Invoke-ComputerCleanup {
         Write-Output "Free space AFTER      : $(($After.FreeSpace).ToString()) GB"
         Write-Output ''.PadLeft(76, '-')
 
+        if ($MailReport -eq $true) {
+            $script:CleanupReport.TotalCleaned = $TotalCleaned
+            $script:CleanupReport.TotalRunTime = "$TotalSeconds seconds / $TotalMinutes minutes"
+            $script:CleanupReport.FinishTime   = "$(Get-Date | Select-Object -ExpandProperty DateTime)"
+            $ReportBody = $script:CleanupReport.GetEnumerator() | ForEach-Object {
+                New-Object PSCustomObject -Property ([ordered] @{
+                    "Name"  = $_.Key
+                    "Value"  = $_.Value
+                })
+            }
+            $Body = $ReportBody | ConvertTo-Html | Out-String
+
+            $MailParams = @{
+                SmtpServer = $SmtpServer
+                Port       = $SmtpPort
+                From       = $FromAddress
+                To         = $ToAddress
+                Subject    = "$($env:COMPUTERNAME) - Disk Cleanup report"
+                Body       = $Body
+                BodyAsHtml = $true
+            }
+            Write-Verbose "Sending e-mail report to $($MailParams.To)"
+            Send-MailMessage @MailParams
+        }
+    } # end Process
+
+    end {
         # Stop logging
         Stop-Transcript
     } # end End
